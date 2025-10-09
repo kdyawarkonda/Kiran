@@ -16,6 +16,7 @@
 		AA1316AF2E2FBA0400B03938 /* QCScanViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1316AE2E2FBA0400B03938 /* QCScanViewController.m */; };
 		AA13172A2E31290900B03938 /* QCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1317282E3128F300B03938 /* QCSDK.framework */; };
 		AA13172B2E31290900B03938 /* QCSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AA1317282E3128F300B03938 /* QCSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		AA1318002F2F9B0C00B03938 /* QGMediaInfoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -48,6 +49,8 @@
 		AA1316AD2E2FBA0400B03938 /* QCScanViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCScanViewController.h; sourceTree = "<group>"; };
 		AA1316AE2E2FBA0400B03938 /* QCScanViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QCScanViewController.m; sourceTree = "<group>"; };
 		AA1317282E3128F300B03938 /* QCSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = QCSDK.framework; sourceTree = SOURCE_ROOT; };
+		AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QGMediaInfoManager.m; sourceTree = "<group>"; };
+		AA1318022F2F9B0C00B03938 /* QGMediaInfoManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QGMediaInfoManager.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +94,8 @@
 				AA1313BB2E2F9E9800B03938 /* QCCentralManager.m */,
 				AA1316AD2E2FBA0400B03938 /* QCScanViewController.h */,
 				AA1316AE2E2FBA0400B03938 /* QCScanViewController.m */,
+				AA1318022F2F9B0C00B03938 /* QGMediaInfoManager.h */,
+				AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */,
 				AA1313792E2F904500B03938 /* Assets.xcassets */,
 				AA13137A2E2F904500B03938 /* Info.plist */,
 				AA13137C2E2F904500B03938 /* LaunchScreen.storyboard */,
@@ -185,6 +190,7 @@
 				AA1313862E2F904500B03938 /* main.m in Sources */,
 				AA1313882E2F904500B03938 /* ViewController.m in Sources */,
 				AA1316AF2E2FBA0400B03938 /* QCScanViewController.m in Sources */,
+				AA1318002F2F9B0C00B03938 /* QGMediaInfoManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

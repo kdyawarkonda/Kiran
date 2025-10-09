@@ -12,6 +12,7 @@
 
 #import "QCScanViewController.h"
 #import "QCCentralManager.h"
+#import "QGMediaInfoManager.h"
 
 typedef NS_ENUM(NSInteger, QGDeviceActionType) {
     /// Get hardware version, firmware version, and WiFi firmware versions
@@ -59,9 +60,7 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property(nonatomic,assign)NSInteger battary;
 @property(nonatomic,assign)BOOL charging;
 
-@property(nonatomic,assign)NSInteger photoCount;
-@property(nonatomic,assign)NSInteger videoCount;
-@property(nonatomic,assign)NSInteger audioCount;
+@property(nonatomic,strong)QGMediaInfo *currentMediaInfo;
 
 @property(nonatomic,assign)BOOL recordingVideo;
 @property(nonatomic,assign)BOOL recordingAudio;
@@ -103,10 +102,12 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 }
 
 - (void)didUpdateMediaWithPhotoCount:(NSInteger)photo videoCount:(NSInteger)video audioCount:(NSInteger)audio type:(NSInteger)type {
-    
-    self.photoCount = photo;
-    self.videoCount = video;
-    self.audioCount = audio;
+
+    // Create new media info object from delegate callback
+    self.currentMediaInfo = [[QGMediaInfo alloc] initWithPhotoCount:photo
+                                                          videoCount:video
+                                                          audioCount:audio
+                                                           totalSize:type];
     [self.tableView reloadData];
 }
 
@@ -164,14 +165,32 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 }
 
 - (void)getMediaInfo {
-    [QCSDKCmdCreator getDeviceMedia:^(NSInteger photo, NSInteger video, NSInteger audio, NSInteger type) {
-        
-        self.photoCount = photo;
-        self.videoCount = video;
-        self.audioCount = audio;
-        [self.tableView reloadData];
-    } fail:^{
-        
+    NSLog(@"Getting media information using QGMediaInfoManager...");
+
+    [[QGMediaInfoManager shared] getMediaInfoWithCompletion:^(QGMediaInfo *mediaInfo, NSError *error) {
+        if (error) {
+            NSLog(@"Failed to get media info: %@", error.localizedDescription);
+            // Show error alert to user
+            dispatch_async(dispatch_get_main_queue(), ^{
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                               message:@"Failed to retrieve media information from device. Please ensure the device is connected."
+                                                                        preferredStyle:UIAlertControllerStyleAlert];
+
+                UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                                   style:UIAlertActionStyleDefault
+                                                                 handler:nil];
+                [alert addAction:okAction];
+                [self presentViewController:alert animated:YES completion:nil];
+            });
+            return;
+        }
+
+        NSLog(@"Successfully retrieved media info: %@", [mediaInfo detailedDescription]);
+        self.currentMediaInfo = mediaInfo;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+        });
     }];
 }
 
@@ -343,8 +362,12 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
             cell.detailTextLabel.text = [NSString stringWithFormat:@"battary:%zd,charing:%zd", self.battary, (NSInteger)self.charging];
             break;
         case QGDeviceActionTypeGetMediaInfo:
-            cell.textLabel.text = @"Get media info";
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"photo:%zd,video:%zd,audio:%zd", self.photoCount, self.videoCount, self.audioCount];
+            cell.textLabel.text = @"Get Media Info";
+            if (self.currentMediaInfo) {
+                cell.detailTextLabel.text = [self.currentMediaInfo formattedDescription];
+            } else {
+                cell.detailTextLabel.text = @"Tap to retrieve media information";
+            }
             break;
         case QGDeviceActionTypeTakePhoto:
             cell.textLabel.text = @"Take Photo";
