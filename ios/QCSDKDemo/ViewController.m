@@ -53,6 +53,9 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
     /// View downloaded media gallery
     QGDeviceActionTypeViewGallery,
 
+    /// Power off glasses (turn off Bluetooth)
+    QGDeviceActionTypePowerOff,
+
     /// Reserved for future use
     QGDeviceActionTypeReserved,
 };
@@ -394,6 +397,11 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
             cell.textLabel.text = @"View Media Gallery";
             cell.detailTextLabel.text = @"Browse and view downloaded photos and videos.";
             break;
+        case QGDeviceActionTypePowerOff:
+            cell.textLabel.text = @"Power Off Glasses";
+            cell.detailTextLabel.text = @"Turn off the glasses' Bluetooth module.";
+            cell.textLabel.textColor = [UIColor redColor];
+            break;
         case QGDeviceActionTypeReserved:
             break;
         default:
@@ -437,6 +445,9 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
             break;
         case QGDeviceActionTypeViewGallery:
             [self openMediaGallery];
+            break;
+        case QGDeviceActionTypePowerOff:
+            [self powerOffGlasses];
             break;
         case QGDeviceActionTypeSwitchToCaptureMode:
             [self switchToCaptureMode];
@@ -555,6 +566,62 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
         NSLog(@"Failed to switch to transfer mode, current mode: %zd", mode);
         [self.tableView reloadData];
     }];
+}
+
+- (void)powerOffGlasses {
+    NSLog(@"Powering off glasses...");
+
+    // Show confirmation alert
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Power Off Glasses"
+                                                                   message:@"Are you sure you want to turn off the glasses' Bluetooth module? This will disconnect the device."
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+
+    UIAlertAction *powerOffAction = [UIAlertAction actionWithTitle:@"Power Off"
+                                                             style:UIAlertActionStyleDestructive
+                                                           handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"Sending power off command to glasses...");
+
+        [QCSDKCmdCreator setDeviceMode:QCOperatorDeviceModeTransferStop
+                               success:^{
+            NSLog(@"✅ Glasses Bluetooth turned off successfully");
+
+            // Show success message
+            UIAlertController *successAlert = [UIAlertController alertControllerWithTitle:@"Success"
+                                                                                   message:@"Glasses have been powered off. The device should now be disconnected."
+                                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+            UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                               style:UIAlertActionStyleDefault
+                                                             handler:nil];
+
+            [successAlert addAction:okAction];
+            [self presentViewController:successAlert animated:YES completion:nil];
+
+        } fail:^(NSInteger mode) {
+            NSLog(@"❌ Failed to power off glasses, current mode: %zd", mode);
+
+            // Show error message
+            UIAlertController *errorAlert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                                  message:[NSString stringWithFormat:@"Failed to power off glasses. Current device mode: %zd", mode]
+                                                                           preferredStyle:UIAlertControllerStyleAlert];
+
+            UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                               style:UIAlertActionStyleDefault
+                                                             handler:nil];
+
+            [errorAlert addAction:okAction];
+            [self presentViewController:errorAlert animated:YES completion:nil];
+        }];
+    }];
+
+    [alert addAction:cancelAction];
+    [alert addAction:powerOffAction];
+
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 @end
