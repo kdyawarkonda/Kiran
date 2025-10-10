@@ -27,6 +27,14 @@
     return self;
 }
 
+- (void)dealloc {
+    // Clean up resources to prevent memory leaks
+    self.delegate = nil;
+    self.aiImageData = nil;
+    [self.tableView setDelegate:nil];
+    [self.tableView setDataSource:nil];
+}
+
 - (void)setupTableViewWithFrame:(CGRect)frame {
     self.tableView = [[UITableView alloc] initWithFrame:frame style:UITableViewStylePlain];
     self.tableView.backgroundColor = [UIColor clearColor];
@@ -223,16 +231,24 @@
 
     QGDeviceActionType actionType = (QGDeviceActionType)indexPath.row;
 
-    // Special handling for AI Image
+    // Special handling for AI Image - with safer delegate access
     if (actionType == QGDeviceActionTypeToggleTakeAIImage && self.aiImageData) {
-        if ([self.delegate respondsToSelector:@selector(columnsManager:didSelectAIImage:)]) {
-            [self.delegate columnsManager:self didSelectAIImage:self.aiImageData];
+        if (self.delegate && [self.delegate respondsToSelector:@selector(columnsManager:didSelectAIImage:)]) {
+            @try {
+                [self.delegate columnsManager:self didSelectAIImage:self.aiImageData];
+            } @catch (NSException *exception) {
+                NSLog(@"Error in AI image delegate call: %@", exception.reason);
+            }
         }
         return;
     }
 
-    if ([self.delegate respondsToSelector:@selector(columnsManager:didSelectAction:)]) {
-        [self.delegate columnsManager:self didSelectAction:actionType];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(columnsManager:didSelectAction:)]) {
+        @try {
+            [self.delegate columnsManager:self didSelectAction:actionType];
+        } @catch (NSException *exception) {
+            NSLog(@"Error in action delegate call: %@", exception.reason);
+        }
     }
 }
 
@@ -240,17 +256,29 @@
     // Clear any existing image to avoid cell reuse issues
     cell.imageView.image = nil;
 
-    if (self.aiImageData) {
+    if (self.aiImageData && self.aiImageData.length > 0) {
         UIImage *aiImage = [UIImage imageWithData:self.aiImageData];
         if (aiImage) {
-            // Create a thumbnail with consistent size
+            // Create a thumbnail with consistent size - safer approach
             CGSize thumbnailSize = CGSizeMake(40, 40);
-            UIGraphicsBeginImageContextWithOptions(thumbnailSize, NO, 0.0);
-            [aiImage drawInRect:CGRectMake(0, 0, thumbnailSize.width, thumbnailSize.height)];
-            UIImage *thumbnail = UIGraphicsGetImageFromCurrentImageContext();
-            UIGraphicsEndImageContext();
 
-            cell.imageView.image = thumbnail;
+            @try {
+                UIGraphicsBeginImageContextWithOptions(thumbnailSize, NO, 0.0);
+                CGContextRef context = UIGraphicsGetCurrentContext();
+                if (context) {
+                    [aiImage drawInRect:CGRectMake(0, 0, thumbnailSize.width, thumbnailSize.height)];
+                    UIImage *thumbnail = UIGraphicsGetImageFromCurrentImageContext();
+                    if (thumbnail) {
+                        cell.imageView.image = thumbnail;
+                    }
+                }
+                UIGraphicsEndImageContext();
+            } @catch (NSException *exception) {
+                NSLog(@"Error creating thumbnail: %@", exception.reason);
+                // Fallback: use original image if thumbnail creation fails
+                cell.imageView.image = aiImage;
+            }
+
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
             // Update detail text to show image status

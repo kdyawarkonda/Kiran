@@ -390,4 +390,11 @@
     [self presentViewController:navController animated:YES completion:nil];
 }
 
+- (void)dealloc {
+    // Clean up to prevent memory access issues
+    self.columnsManager.delegate = nil;
+    [QCSDKManager shareInstance].delegate = nil;
+    [QCCentralManager shared].delegate = nil;
+}
+
 @end
