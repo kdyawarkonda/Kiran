@@ -7,8 +7,11 @@
 
 #import <UIKit/UIKit.h>
 
+@class QGAIImageView;
+
 @interface ViewController : UIViewController
 
+@property (nonatomic, strong) QGAIImageView *aiImageView;
 
 @end
 

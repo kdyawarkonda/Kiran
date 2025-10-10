@@ -19,7 +19,6 @@ NS_ASSUME_NONNULL_BEGIN
 @optional
 - (void)columnsManager:(QGUIColumnsManager *)manager didSelectAction:(NSInteger)actionType;
 - (void)columnsManager:(QGUIColumnsManager *)manager didRequestMediaInfoRefresh:(void(^)(void))completion;
-- (void)columnsManager:(QGUIColumnsManager *)manager didSelectAIImage:(NSData *)imageData;
 
 @end
 
@@ -45,7 +44,7 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
     /// Start or stop audio recording
     QGDeviceActionTypeToggleAudioRecording,
 
-    /// Take AI Image
+    /// Take AI Image (trigger only - display handled separately)
     QGDeviceActionTypeToggleTakeAIImage,
 
     /// Reserved for future use
@@ -70,7 +69,6 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property (nonatomic, copy) NSString *mediaInfoError;
 @property (nonatomic, assign) BOOL recordingVideo;
 @property (nonatomic, assign) BOOL recordingAudio;
-@property (nonatomic, strong) NSData *aiImageData;
 @property (nonatomic, assign) BOOL stateManagementEnabled;
 
 - (instancetype)initWithFrame:(CGRect)frame;
@@ -78,7 +76,6 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 - (void)setHidden:(BOOL)hidden;
 - (NSString *)titleForActionType:(QGDeviceActionType)actionType;
 - (NSString *)detailTextForActionType:(QGDeviceActionType)actionType;
-- (void)clearAIImage;
 
 // State Management - Direct access to QStateManager
 @property (nonatomic, strong) QGStateManager *stateManager;

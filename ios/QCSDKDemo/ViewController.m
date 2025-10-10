@@ -14,6 +14,7 @@
 #import "QCCentralManager.h"
 #import "QGMediaInfoManager.h"
 #import "QGUIColumnsManager.h"
+#import "QGAIImageView.h"
 
 // Remove duplicate enum definition since it's now in QGUIColumnsManager.h
 
@@ -49,6 +50,9 @@
     // Enable state management with unique identifier
     [self.columnsManager setupStateManagerWithIdentifier:@"QCSDKColumnsState"];
 
+    // Initialize AI image view (floating overlay)
+    [self setupAIImageView];
+
     [QCSDKManager shareInstance].delegate = self;
 }
 
@@ -71,8 +75,8 @@
 
 - (void)didReceiveAIChatImageData:(NSData *)imageData {
     NSLog(@"didReceiveAIChatImageData");
-    self.columnsManager.aiImageData = imageData;
-    [self.columnsManager reloadData];
+    // Show AI image in floating overlay instead of columns list
+    [self.aiImageView showAIImage:imageData animated:YES];
 }
 
 #pragma mark - Feature Fuctions
@@ -219,9 +223,8 @@
 
 - (void)takeAIImage {
     // Clear previous AI image before taking a new one
-    [self.columnsManager clearAIImage];
+    [self.aiImageView clearImage];
 
-    //- (void)didReceiveAIChatImageData:(NSData *)imageData
     [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeAIPhoto) success:^{
         NSLog(@"AI Image capture initiated");
     } fail:^(NSInteger mode) {
@@ -340,51 +343,24 @@
     }
 }
 
-- (void)columnsManager:(QGUIColumnsManager *)manager didSelectAIImage:(NSData *)imageData {
-    // Validate image data before showing options
-    if (!imageData || imageData.length == 0) {
-        NSLog(@"Invalid AI image data received");
-        return;
-    }
+#pragma mark - AI Image Setup
 
-    // Show options for the AI image
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"AI Image Options"
-                                                                   message:@"What would you like to do with this AI image?"
-                                                            preferredStyle:UIAlertControllerStyleAlert];
+- (void)setupAIImageView {
+    // Create AI image view as floating overlay
+    CGRect aiImageFrame = CGRectMake(20, 120, self.view.frame.size.width - 40, 200);
+    self.aiImageView = [[QGAIImageView alloc] initWithFrame:aiImageFrame];
 
-    UIAlertAction *viewAction = [UIAlertAction actionWithTitle:@"View Full Image"
-                                                         style:UIAlertActionStyleDefault
-                                                       handler:^(UIAlertAction * _Nonnull action) {
-        // Make a copy of the image data to prevent modification during async operations
-        NSData *imageDataCopy = [imageData copy];
-        [self showFullScreenAIImage:imageDataCopy];
-    }];
+    // Setup callbacks
+    __weak typeof(self) weakSelf = self;
+    self.aiImageView.onImageTap = ^(NSData *imageData) {
+        [weakSelf showFullScreenAIImage:imageData];
+    };
 
-    UIAlertAction *clearAction = [UIAlertAction actionWithTitle:@"Clear Image"
-                                                          style:UIAlertActionStyleDestructive
-                                                        handler:^(UIAlertAction * _Nonnull action) {
-        [manager clearAIImage];
-    }];
+    self.aiImageView.onDismiss = ^{
+        [weakSelf.aiImageView hideAnimated:YES];
+    };
 
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
-                                                           style:UIAlertActionStyleCancel
-                                                         handler:nil];
-
-    [alert addAction:viewAction];
-    [alert addAction:clearAction];
-    [alert addAction:cancelAction];
-
-    // Safe presentation with error handling
-    if (self.presentedViewController) {
-        NSLog(@"Cannot present alert: controller already presenting");
-        return;
-    }
-
-    @try {
-        [self presentViewController:alert animated:YES completion:nil];
-    } @catch (NSException *exception) {
-        NSLog(@"Error presenting AI image options alert: %@", exception.reason);
-    }
+    [self.view addSubview:self.aiImageView];
 }
 
 - (void)showFullScreenAIImage:(NSData *)imageData {
@@ -409,7 +385,7 @@
     imageView.image = image;
     imageView.contentMode = UIViewContentModeScaleAspectFit;
     imageView.backgroundColor = [UIColor blackColor];
-    imageView.translatesAutoresizingMaskIntoConstraints = NO; // Use Auto Layout instead of autoresizingMask
+    imageView.translatesAutoresizingMaskIntoConstraints = NO;
 
     [imageViewController.view addSubview:imageView];
 
@@ -421,19 +397,19 @@
         [imageView.bottomAnchor constraintEqualToAnchor:imageViewController.view.safeAreaLayoutGuide.bottomAnchor]
     ]];
 
-    // Add safe tap to dismiss with weak reference to prevent retain cycles
+    // Add tap to dismiss
     __weak typeof(imageViewController) weakImageViewController = imageViewController;
     UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissImageViewController:)];
     [imageView addGestureRecognizer:tapGesture];
     imageView.userInteractionEnabled = YES;
 
-    // Add close button with proper target
+    // Add close button
     UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
                                                                                  target:self
                                                                                  action:@selector(dismissImageViewController:)];
     imageViewController.navigationItem.rightBarButtonItem = doneButton;
 
-    // Present with proper memory management
+    // Present
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:imageViewController];
     navController.modalPresentationStyle = UIModalPresentationFullScreen;
 
@@ -445,7 +421,6 @@
 }
 
 - (void)dismissImageViewController:(id)sender {
-    // Safe dismiss with proper cleanup
     if (self.presentedViewController) {
         @try {
             [self dismissViewControllerAnimated:YES completion:nil];

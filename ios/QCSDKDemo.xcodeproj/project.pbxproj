@@ -18,6 +18,7 @@
 		AA13172A2E31290900B03938 /* QCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1317282E3128F300B03938 /* QCSDK.framework */; };
 		AA13172B2E31290900B03938 /* QCSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AA1317282E3128F300B03938 /* QCSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		AA1318002F2F9B0C00B03938 /* QGMediaInfoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */; };
+		QGAIImageView1234567890 /* QGAIImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = QGAIImageView0987654321 /* QGAIImageView.m */; };
 		C47B5F9DB713CFE69E3B2C30 /* QGStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A221BCF9683A9FAA305A1317 /* QGStateManager.m */; };
 /* End PBXBuildFile section */
 
@@ -47,6 +48,7 @@
 		AA13137A2E2F904500B03938 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA13137B2E2F904500B03938 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AA13137D2E2F904500B03938 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		QGAIImageViewABCDEFGHI /* QGAIImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QGAIImageView.h; sourceTree = "<group>"; };
 		AA1313822E2F904500B03938 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		AA1313832E2F904500B03938 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		AA13138E2E2F915600B03938 /* QCSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = QCSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -57,6 +59,7 @@
 		AA1317282E3128F300B03938 /* QCSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = QCSDK.framework; sourceTree = SOURCE_ROOT; };
 		AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QGMediaInfoManager.m; sourceTree = "<group>"; };
 		AA1318022F2F9B0C00B03938 /* QGMediaInfoManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QGMediaInfoManager.h; sourceTree = "<group>"; };
+		QGAIImageView0987654321 /* QGAIImageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QGAIImageView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +113,8 @@
 				556B61F94A8C6C699FEC9ABF /* QGUIColumnsManager.m */,
 				23CFF9CDFD5BB121756D3744 /* QGStateManager.h */,
 				A221BCF9683A9FAA305A1317 /* QGStateManager.m */,
+				QGAIImageViewABCDEFGHI /* QGAIImageView.h */,
+				QGAIImageView0987654321 /* QGAIImageView.m */,
 			);
 			path = QCSDKDemo;
 			sourceTree = "<group>";
@@ -201,6 +206,7 @@
 				AA1318002F2F9B0C00B03938 /* QGMediaInfoManager.m in Sources */,
 				56DC4C3B17E5EB4D0B9DCB77 /* QGUIColumnsManager.m in Sources */,
 				C47B5F9DB713CFE69E3B2C30 /* QGStateManager.m in Sources */,
+				QGAIImageView1234567890 /* QGAIImageView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
