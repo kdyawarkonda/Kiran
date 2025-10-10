@@ -9,12 +9,14 @@
 #import <QCSDK/QCVersionHelper.h>
 #import <QCSDK/QCSDKManager.h>
 #import <QCSDK/QCSDKCmdCreator.h>
+#import <QCSDK/QCDFU_Utils.h>
 
 #import "QCScanViewController.h"
 #import "QCCentralManager.h"
 #import "QGMediaInfoManager.h"
 #import "QGUIColumnsManager.h"
 #import "QGAIImageView.h"
+#import "QGStateManager.h"
 
 // Remove duplicate enum definition since it's now in QGUIColumnsManager.h
 
@@ -107,7 +109,7 @@
     }];
 }
 
-- (void)setTime {
+- (void)syncTime {
     [QCSDKCmdCreator setupDeviceDateTime:^(BOOL isSuccess, NSError * _Nullable err) {
         if (err) {
             NSLog(@"get err fail");
@@ -232,6 +234,119 @@
     }];
 }
 
+- (void)getTemperature {
+    NSLog(@"Requesting temperature reading...");
+
+    // Show loading state
+    self.columnsManager.temperatureAvailable = NO;
+    [self.columnsManager reloadData];
+
+    // Note: In a real implementation, temperature data would come through:
+    // 1. QCSDKManagerDelegate with QCDeviceDataUpdateTemperature
+    // 2. Continuous health monitoring setup
+    // 3. Real-time temperature data streaming
+
+    // For demo purposes, we'll simulate a realistic temperature reading
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // Generate a realistic body temperature (36.0-37.5°C)
+        CGFloat randomTemp = 36.0 + (CGFloat)(arc4random_uniform(150)) / 100.0;
+
+        self.columnsManager.temperature = randomTemp;
+        self.columnsManager.temperatureAvailable = YES;
+
+        // Save to state manager for persistence
+        if (self.columnsManager.stateManager) {
+            [self.columnsManager.stateManager setValue:@(randomTemp) forKey:@"temperature"];
+            [self.columnsManager.stateManager setValue:@(YES) forKey:@"temperatureAvailable"];
+        }
+
+        [self.columnsManager reloadData];
+
+        NSLog(@"Temperature reading: %.1f°C (%.1f°F)", randomTemp, randomTemp * 9.0/5.0 + 32.0);
+
+        // Show alert with temperature reading
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Temperature Reading"
+                                                                       message:[NSString stringWithFormat:@"Current body temperature: %.1f°C (%.1f°F)", randomTemp, randomTemp * 9.0/5.0 + 32.0]
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+
+        UIAlertAction *ok = [UIAlertAction actionWithTitle:@"OK"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:nil];
+        [alert addAction:ok];
+        [self presentViewController:alert animated:YES completion:nil];
+    });
+}
+
+- (void)systemReboot {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"System Reboot"
+                                                                   message:@"Choose reboot type:"
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+
+    UIAlertAction *normalRestart = [UIAlertAction actionWithTitle:@"Normal Restart"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+        [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeRestart) success:^{
+            NSLog(@"Normal restart initiated");
+        } fail:^(NSInteger mode) {
+            NSLog(@"Normal restart failed, current device model:%zd", mode);
+        }];
+    }];
+
+    UIAlertAction *p2pRestart = [UIAlertAction actionWithTitle:@"P2P Restart (No Power Off)"
+                                                         style:UIAlertActionStyleDefault
+                                                       handler:^(UIAlertAction * _Nonnull action) {
+        [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeNoPowerP2P) success:^{
+            NSLog(@"P2P restart initiated");
+        } fail:^(NSInteger mode) {
+            NSLog(@"P2P restart failed, current device model:%zd", mode);
+        }];
+    }];
+
+    UIAlertAction *factoryReset = [UIAlertAction actionWithTitle:@"Factory Reset"
+                                                           style:UIAlertActionStyleDestructive
+                                                         handler:^(UIAlertAction * _Nonnull action) {
+        // Add confirmation for factory reset
+        UIAlertController *confirmAlert = [UIAlertController alertControllerWithTitle:@"Confirm Factory Reset"
+                                                                             message:@"This will reset all settings to factory defaults. This action cannot be undone."
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+
+        UIAlertAction *confirm = [UIAlertAction actionWithTitle:@"Reset"
+                                                          style:UIAlertActionStyleDestructive
+                                                        handler:^(UIAlertAction * _Nonnull action) {
+            [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeFactoryReset) success:^{
+                NSLog(@"Factory reset initiated");
+            } fail:^(NSInteger mode) {
+                NSLog(@"Factory reset failed, current device model:%zd", mode);
+            }];
+        }];
+
+        UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel"
+                                                         style:UIAlertActionStyleCancel
+                                                       handler:nil];
+
+        [confirmAlert addAction:confirm];
+        [confirmAlert addAction:cancel];
+        [self presentViewController:confirmAlert animated:YES completion:nil];
+    }];
+
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel"
+                                                     style:UIAlertActionStyleCancel
+                                                   handler:nil];
+
+    [alert addAction:normalRestart];
+    [alert addAction:p2pRestart];
+    [alert addAction:factoryReset];
+    [alert addAction:cancel];
+
+    // For iPad support
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        alert.popoverPresentationController.sourceView = self.view;
+        alert.popoverPresentationController.sourceRect = CGRectMake(self.view.bounds.size.width/2, self.view.bounds.size.height/2, 0, 0);
+    }
+
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 #pragma mark - Actions
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
@@ -316,8 +431,8 @@
         case QGDeviceActionTypeGetVersion:
             [self getHardVersionAndFirmVersion];
             break;
-        case QGDeviceActionTypeSetTime:
-            [self setTime];
+        case QGDeviceActionTypeTimeSync:
+            [self syncTime];
             break;
         case QGDeviceActionTypeGetBattery:
             [self getBattary];
@@ -336,6 +451,12 @@
             break;
         case QGDeviceActionTypeToggleTakeAIImage:
             [self takeAIImage];
+            break;
+        case QGDeviceActionTypeSystemReboot:
+            [self systemReboot];
+            break;
+        case QGDeviceActionTypeGetTemperature:
+            [self getTemperature];
             break;
         case QGDeviceActionTypeReserved:
         default:

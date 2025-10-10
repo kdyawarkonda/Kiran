@@ -51,6 +51,8 @@
     self.isLoadingMediaInfo = NO;
     self.recordingVideo = NO;
     self.recordingAudio = NO;
+    self.temperature = 0.0;
+    self.temperatureAvailable = NO;
 }
 
 #pragma mark - Public Methods
@@ -67,8 +69,8 @@
     switch (actionType) {
         case QGDeviceActionTypeGetVersion:
             return @"Get hard Version & firm Version";
-        case QGDeviceActionTypeSetTime:
-            return @"Set Time";
+        case QGDeviceActionTypeTimeSync:
+            return @"Time Sync";
         case QGDeviceActionTypeGetBattery:
             return @"Get Battery";
         case QGDeviceActionTypeGetMediaInfo:
@@ -81,6 +83,10 @@
             return self.recordingAudio ? @"Stop Record audio" : @"Start Record audio";
         case QGDeviceActionTypeToggleTakeAIImage:
             return @"Take AI Image";
+        case QGDeviceActionTypeSystemReboot:
+            return @"System Reboot";
+        case QGDeviceActionTypeGetTemperature:
+            return @"Get Temperature";
         case QGDeviceActionTypeReserved:
         default:
             return @"";
@@ -96,8 +102,14 @@
                     self.hardWiFiVersion ?: @"N/A",
                     self.firmWiFiVersion ?: @"N/A"];
 
-        case QGDeviceActionTypeSetTime:
+        case QGDeviceActionTypeTimeSync:
             return @"";
+
+        case QGDeviceActionTypeSystemReboot:
+            return @"Normal, P2P, or Factory Reset";
+
+        case QGDeviceActionTypeGetTemperature:
+            return [self temperatureDetailText];
 
         case QGDeviceActionTypeGetBattery:
             return [NSString stringWithFormat:@"battary:%zd,charing:%zd", self.battery, (NSInteger)self.charging];
@@ -130,6 +142,14 @@
         return [self.currentMediaInfo formattedDescription];
     } else {
         return @"Tap to retrieve media information";
+    }
+}
+
+- (NSString *)temperatureDetailText {
+    if (self.temperatureAvailable) {
+        return [NSString stringWithFormat:@"Temperature: %.1f°C (%.1f°F)", self.temperature, self.temperature * 9.0/5.0 + 32.0];
+    } else {
+        return @"Tap to get current temperature";
     }
 }
 
@@ -168,8 +188,9 @@
     // Handle special cases for different action types
     switch (actionType) {
         case QGDeviceActionTypeGetVersion:
-        case QGDeviceActionTypeSetTime:
+        case QGDeviceActionTypeTimeSync:
         case QGDeviceActionTypeGetBattery:
+        case QGDeviceActionTypeGetTemperature:
             cell.detailTextLabel.text = [self detailTextForActionType:actionType];
             cell.textLabel.textColor = [UIColor labelColor];
             break;
@@ -182,6 +203,7 @@
         case QGDeviceActionTypeToggleVideoRecording:
         case QGDeviceActionTypeToggleAudioRecording:
         case QGDeviceActionTypeToggleTakeAIImage:
+        case QGDeviceActionTypeSystemReboot:
             cell.textLabel.textColor = [UIColor labelColor];
             break;
 
@@ -296,6 +318,12 @@
 
     NSNumber *isLoadingMediaInfo = [self.stateManager valueForKey:@"isLoadingMediaInfo"];
     if (isLoadingMediaInfo) self.isLoadingMediaInfo = [isLoadingMediaInfo boolValue];
+
+    NSNumber *temperature = [self.stateManager valueForKey:@"temperature"];
+    if (temperature) self.temperature = [temperature floatValue];
+
+    NSNumber *temperatureAvailable = [self.stateManager valueForKey:@"temperatureAvailable"];
+    if (temperatureAvailable) self.temperatureAvailable = [temperatureAvailable boolValue];
 
     self.mediaInfoError = [self.stateManager valueForKey:@"mediaInfoError"];
     [self reloadData];

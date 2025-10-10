@@ -27,7 +27,7 @@ This repository provides SDKs for developers to integrate HeyCyan smart glasses 
 ### Device Monitoring
 - **Battery Status**: Real-time battery level and charging state
 - **Media Counts**: Track number of photos, videos, and audio files on device
-- **Time Synchronization**: Set device time to match iOS device
+- **Time Sync**: Sync device time with the phone
 
 ## Project Structure
 
@@ -110,7 +110,7 @@ HeyCyanGlassesSDK/
 Key methods:
 - `getDeviceVersionInfo` - Get hardware/firmware versions
 - `getDeviceMacAddress` - Get device MAC address
-- `setupDeviceDateTime` - Sync device time
+- `setupDeviceDateTime` - Time sync
 - `getDeviceBattery` - Get battery level and charging status
 - `getDeviceMedia` - Get media file counts
 - `setDeviceMode` - Control device operations (photo/video/audio)
@@ -130,7 +130,7 @@ The included demo application demonstrates all SDK features:
 1. **Search Screen**: Scan and list available devices
 2. **Feature Screen**: Control connected device with options for:
    - Version information retrieval
-   - Time synchronization
+   - Time sync
    - Battery status monitoring
    - Media count tracking
    - Photo/video/audio capture

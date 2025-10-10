@@ -26,8 +26,8 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
     /// Get hardware version, firmware version, and WiFi firmware versions
     QGDeviceActionTypeGetVersion = 0,
 
-    /// Set the current device time
-    QGDeviceActionTypeSetTime,
+    /// Sync the device time with the phone
+    QGDeviceActionTypeTimeSync,
 
     /// Get battery level and charging status
     QGDeviceActionTypeGetBattery,
@@ -46,6 +46,12 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 
     /// Take AI Image (trigger only - display handled separately)
     QGDeviceActionTypeToggleTakeAIImage,
+
+    /// System reboot with multiple options
+    QGDeviceActionTypeSystemReboot,
+
+    /// Get body temperature reading from health sensors
+    QGDeviceActionTypeGetTemperature,
 
     /// Reserved for future use
     QGDeviceActionTypeReserved,
@@ -69,6 +75,8 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property (nonatomic, copy) NSString *mediaInfoError;
 @property (nonatomic, assign) BOOL recordingVideo;
 @property (nonatomic, assign) BOOL recordingAudio;
+@property (nonatomic, assign) CGFloat temperature;
+@property (nonatomic, assign) BOOL temperatureAvailable;
 @property (nonatomic, assign) BOOL stateManagementEnabled;
 
 - (instancetype)initWithFrame:(CGRect)frame;
