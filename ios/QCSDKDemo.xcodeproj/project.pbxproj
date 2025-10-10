@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56DC4C3B17E5EB4D0B9DCB77 /* QGUIColumnsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 556B61F94A8C6C699FEC9ABF /* QGUIColumnsManager.m */; };
 		AA1313852E2F904500B03938 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1313782E2F904500B03938 /* AppDelegate.m */; };
 		AA1313862E2F904500B03938 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AA13137D2E2F904500B03938 /* main.m */; };
 		AA1313882E2F904500B03938 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1313832E2F904500B03938 /* ViewController.m */; };
@@ -34,6 +35,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2D21BB4D67811EE6478EB2D6 /* QGUIColumnsManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = QGUIColumnsManager.h; sourceTree = "<group>"; };
+		556B61F94A8C6C699FEC9ABF /* QGUIColumnsManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = QGUIColumnsManager.m; sourceTree = "<group>"; };
 		AA1313572E2F903500B03938 /* QCSDKDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QCSDKDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1313772E2F904500B03938 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		AA1313782E2F904500B03938 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -100,6 +103,8 @@
 				AA13137A2E2F904500B03938 /* Info.plist */,
 				AA13137C2E2F904500B03938 /* LaunchScreen.storyboard */,
 				AA13137D2E2F904500B03938 /* main.m */,
+				2D21BB4D67811EE6478EB2D6 /* QGUIColumnsManager.h */,
+				556B61F94A8C6C699FEC9ABF /* QGUIColumnsManager.m */,
 			);
 			path = QCSDKDemo;
 			sourceTree = "<group>";
@@ -129,8 +134,6 @@
 			dependencies = (
 			);
 			name = QCSDKDemo;
-			packageProductDependencies = (
-			);
 			productName = QCSDKDemo;
 			productReference = AA1313572E2F903500B03938 /* QCSDKDemo.app */;
 			productType = "com.apple.product-type.application";
@@ -191,6 +194,7 @@
 				AA1313882E2F904500B03938 /* ViewController.m in Sources */,
 				AA1316AF2E2FBA0400B03938 /* QCScanViewController.m in Sources */,
 				AA1318002F2F9B0C00B03938 /* QGMediaInfoManager.m in Sources */,
+				56DC4C3B17E5EB4D0B9DCB77 /* QGUIColumnsManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
