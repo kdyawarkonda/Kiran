@@ -215,9 +215,12 @@
 }
 
 - (void)takeAIImage {
+    // Clear previous AI image before taking a new one
+    [self.columnsManager clearAIImage];
+
     //- (void)didReceiveAIChatImageData:(NSData *)imageData
     [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeAIPhoto) success:^{
-        
+        NSLog(@"AI Image capture initiated");
     } fail:^(NSInteger mode) {
         NSLog(@"set fail,current device model:%zd",mode);
     }];
@@ -332,6 +335,59 @@
         default:
             break;
     }
+}
+
+- (void)columnsManager:(QGUIColumnsManager *)manager didSelectAIImage:(NSData *)imageData {
+    // Show options for the AI image
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"AI Image Options"
+                                                                   message:@"What would you like to do with this AI image?"
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *viewAction = [UIAlertAction actionWithTitle:@"View Full Image"
+                                                         style:UIAlertActionStyleDefault
+                                                       handler:^(UIAlertAction * _Nonnull action) {
+        [self showFullScreenAIImage:imageData];
+    }];
+
+    UIAlertAction *clearAction = [UIAlertAction actionWithTitle:@"Clear Image"
+                                                          style:UIAlertActionStyleDestructive
+                                                        handler:^(UIAlertAction * _Nonnull action) {
+        [manager clearAIImage];
+    }];
+
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:nil];
+
+    [alert addAction:viewAction];
+    [alert addAction:clearAction];
+    [alert addAction:cancelAction];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)showFullScreenAIImage:(NSData *)imageData {
+    UIImage *image = [UIImage imageWithData:imageData];
+    if (!image) return;
+
+    // Create image view controller
+    UIViewController *imageViewController = [[UIViewController alloc] init];
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:imageViewController.view.bounds];
+    imageView.image = image;
+    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    imageView.backgroundColor = [UIColor blackColor];
+    imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [imageViewController.view addSubview:imageView];
+
+    // Add tap to dismiss
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:imageViewController action:@selector(dismissViewControllerAnimated:completion:)];
+    [imageView addGestureRecognizer:tapGesture];
+    imageView.userInteractionEnabled = YES;
+
+    // Add close button
+    imageViewController.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:imageViewController action:@selector(dismissViewControllerAnimated:completion:)];
+
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:imageViewController];
+    [self presentViewController:navController animated:YES completion:nil];
 }
 
 @end

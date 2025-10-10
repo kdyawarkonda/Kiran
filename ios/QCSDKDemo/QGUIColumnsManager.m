@@ -61,7 +61,7 @@
         case QGDeviceActionTypeSetTime:
             return @"Set Time";
         case QGDeviceActionTypeGetBattery:
-            return @"Get Battary";
+            return @"Get Battery";
         case QGDeviceActionTypeGetMediaInfo:
             return @"Media Information";
         case QGDeviceActionTypeTakePhoto:
@@ -172,9 +172,7 @@
             break;
 
         case QGDeviceActionTypeToggleTakeAIImage:
-            if (self.aiImageData) {
-                cell.imageView.image = [UIImage imageWithData:self.aiImageData];
-            }
+            [self configureAIImageCell:cell];
             break;
 
         case QGDeviceActionTypeReserved:
@@ -225,9 +223,51 @@
 
     QGDeviceActionType actionType = (QGDeviceActionType)indexPath.row;
 
+    // Special handling for AI Image
+    if (actionType == QGDeviceActionTypeToggleTakeAIImage && self.aiImageData) {
+        if ([self.delegate respondsToSelector:@selector(columnsManager:didSelectAIImage:)]) {
+            [self.delegate columnsManager:self didSelectAIImage:self.aiImageData];
+        }
+        return;
+    }
+
     if ([self.delegate respondsToSelector:@selector(columnsManager:didSelectAction:)]) {
         [self.delegate columnsManager:self didSelectAction:actionType];
     }
+}
+
+- (void)configureAIImageCell:(UITableViewCell *)cell {
+    // Clear any existing image to avoid cell reuse issues
+    cell.imageView.image = nil;
+
+    if (self.aiImageData) {
+        UIImage *aiImage = [UIImage imageWithData:self.aiImageData];
+        if (aiImage) {
+            // Create a thumbnail with consistent size
+            CGSize thumbnailSize = CGSizeMake(40, 40);
+            UIGraphicsBeginImageContextWithOptions(thumbnailSize, NO, 0.0);
+            [aiImage drawInRect:CGRectMake(0, 0, thumbnailSize.width, thumbnailSize.height)];
+            UIImage *thumbnail = UIGraphicsGetImageFromCurrentImageContext();
+            UIGraphicsEndImageContext();
+
+            cell.imageView.image = thumbnail;
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+
+            // Update detail text to show image status
+            cell.detailTextLabel.text = @"AI Image captured - tap to view";
+            cell.textLabel.textColor = [UIColor labelColor];
+        }
+    } else {
+        // No AI image available - show placeholder text
+        cell.detailTextLabel.text = @"Tap to take AI Image";
+        cell.textLabel.textColor = [UIColor labelColor];
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    }
+}
+
+- (void)clearAIImage {
+    self.aiImageData = nil;
+    [self reloadData];
 }
 
 @end

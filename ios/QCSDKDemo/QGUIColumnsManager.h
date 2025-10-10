@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @optional
 - (void)columnsManager:(QGUIColumnsManager *)manager didSelectAction:(NSInteger)actionType;
 - (void)columnsManager:(QGUIColumnsManager *)manager didRequestMediaInfoRefresh:(void(^)(void))completion;
+- (void)columnsManager:(QGUIColumnsManager *)manager didSelectAIImage:(NSData *)imageData;
 
 @end
 
@@ -75,6 +76,7 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 - (void)setHidden:(BOOL)hidden;
 - (NSString *)titleForActionType:(QGDeviceActionType)actionType;
 - (NSString *)detailTextForActionType:(QGDeviceActionType)actionType;
+- (void)clearAIImage;
 
 @end
 
