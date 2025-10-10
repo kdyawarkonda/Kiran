@@ -50,8 +50,8 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
     /// System reboot with multiple options
     QGDeviceActionTypeSystemReboot,
 
-    /// Get body temperature reading from health sensors
-    QGDeviceActionTypeGetTemperature,
+    /// Wearing detection status
+    QGDeviceActionTypeWearingDetection,
 
     /// Reserved for future use
     QGDeviceActionTypeReserved,
@@ -75,8 +75,6 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property (nonatomic, copy) NSString *mediaInfoError;
 @property (nonatomic, assign) BOOL recordingVideo;
 @property (nonatomic, assign) BOOL recordingAudio;
-@property (nonatomic, assign) CGFloat temperature;
-@property (nonatomic, assign) BOOL temperatureAvailable;
 @property (nonatomic, assign) BOOL stateManagementEnabled;
 
 - (instancetype)initWithFrame:(CGRect)frame;

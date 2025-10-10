@@ -7,6 +7,7 @@
 
 #import "QCCentralManager.h"
 #import <QCSDK/QCSDKManager.h>
+#import "QGSDKError.h"
 
 static NSString *const QCLastConnectedIdentifier = @"QCLastConnectedIdentifier";
 static NSInteger const QCBleDefaultTimeout = 15;
@@ -213,7 +214,8 @@ static NSInteger const QCBleDefaultConnectTimeout = 6;
     
     if (self.bleState != QCBluetoothStatePoweredOn) {
         if(self.delegate && [self.delegate respondsToSelector:@selector(didFailConnected:error:)]) {
-            [self.delegate didFailConnected:self.connectedPeripheral error:[NSError errorWithDomain:@"Bluetooth powered off" code:-1 userInfo:@{@"message":@"Bluetooth powered off"}]];
+            NSError *error = QGSDKBluetoothPoweredOffError();
+            [self.delegate didFailConnected:self.connectedPeripheral error:error];
         }
         return;
     }
@@ -224,7 +226,8 @@ static NSInteger const QCBleDefaultConnectTimeout = 6;
     }
     else {
         if(self.delegate && [self.delegate respondsToSelector:@selector(didFailConnected:error:)]) {
-            [self.delegate didFailConnected:self.connectedPeripheral error:[NSError errorWithDomain:@"CBPeripheral not exist" code:-1 userInfo:@{@"message":@"CBPeripheral not exist"}]];
+            NSError *error = QGSDKPeripheralMissingError();
+            [self.delegate didFailConnected:self.connectedPeripheral error:error];
         }
     }
 }
@@ -346,7 +349,8 @@ static NSInteger const QCBleDefaultConnectTimeout = 6;
         else {
             NSLog(@"Failed to add peripheral");
             if(self.delegate && [self.delegate respondsToSelector:@selector(didFailConnected:error:)]) {
-                [self.delegate didFailConnected:peripheral error:[NSError errorWithDomain:@"Connect fail" code:-1 userInfo:@{@"message":@"Connect fail"}]];
+                NSError *error = QGSDKConnectionFailedError(@"central_connect");
+                [self.delegate didFailConnected:peripheral error:error];
             }
         }
     }];
@@ -473,7 +477,8 @@ static NSInteger const QCBleDefaultConnectTimeout = 6;
 - (void)stopConnectFinishTimer:(NSTimer *)timer {
     
     if(self.delegate && [self.delegate respondsToSelector:@selector(didFailConnected:error:)]) {
-        [self.delegate didFailConnected:self.connectedPeripheral error:[NSError errorWithDomain:@"timeout" code:-1 userInfo:@{@"message":@"connect timeout"}]];
+        NSError *error = QGSDKTimeoutError(@"central_connect");
+        [self.delegate didFailConnected:self.connectedPeripheral error:error];
     }
 }
 

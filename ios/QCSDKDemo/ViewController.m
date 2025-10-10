@@ -17,6 +17,7 @@
 #import "QGUIColumnsManager.h"
 #import "QGAIImageView.h"
 #import "QGStateManager.h"
+#import "QGSDKError.h"
 
 // Remove duplicate enum definition since it's now in QGUIColumnsManager.h
 
@@ -58,6 +59,19 @@
     [QCSDKManager shareInstance].delegate = self;
 }
 
+- (void)handleSDKError:(NSError *)error {
+    if (!error) {
+        return;
+    }
+
+    NSString *message = QGSDKErrorDisplayMessage(error);
+    NSString *context = error.userInfo[@"context"] ?: @"-";
+    NSLog(@"[QCSDKDemo][Error] %@ | code:%ld | context:%@",
+          message,
+          (long)error.code,
+          context);
+}
+
 #pragma mark - Device Data Report
 - (void)didUpdateBatteryLevel:(NSInteger)battery charging:(BOOL)charging {
     self.columnsManager.battery = battery;
@@ -81,6 +95,7 @@
     [self.aiImageView showAIImage:imageData animated:YES];
 }
 
+
 #pragma mark - Feature Fuctions
 - (void)getHardVersionAndFirmVersion {
     [QCSDKCmdCreator getDeviceVersionInfoSuccess:^(NSString * _Nonnull hdVersion, NSString * _Nonnull firmVersion, NSString * _Nonnull hdWifiVersion, NSString * _Nonnull firmWifiVersion) {
@@ -95,7 +110,11 @@
         NSLog(@"hard Wifi Version:%@",hdWifiVersion);
         NSLog(@"firm Wifi Version:%@",firmWifiVersion);
     } fail:^{
-        NSLog(@"get version fail");
+        NSError *error = QGSDKErrorMake(QGSDKErrorCodeUnknown,
+                                        @"getDeviceVersionInfo",
+                                        nil,
+                                        nil);
+        [self handleSDKError:error];
     }];
 }
 
@@ -105,14 +124,21 @@
         self.columnsManager.mac = macAddress;
         [self.columnsManager reloadData];
     } fail:^{
-        NSLog(@"get mac address fail");
+        NSError *error = QGSDKErrorMake(QGSDKErrorCodeUnknown,
+                                        @"getDeviceMacAddress",
+                                        nil,
+                                        nil);
+        [self handleSDKError:error];
     }];
 }
 
 - (void)syncTime {
     [QCSDKCmdCreator setupDeviceDateTime:^(BOOL isSuccess, NSError * _Nullable err) {
         if (err) {
-            NSLog(@"get err fail");
+            NSError *normalizedError = QGSDKWrapError(err,
+                                                     @"setupDeviceDateTime",
+                                                     QGSDKErrorCodeUnknown);
+            [self handleSDKError:normalizedError];
         }
     }];
 }
@@ -124,7 +150,11 @@
         self.columnsManager.charging = charging;
         [self.columnsManager reloadData];
     } fail:^{
-
+        NSError *error = QGSDKErrorMake(QGSDKErrorCodeUnknown,
+                                        @"getDeviceBattery",
+                                        nil,
+                                        nil);
+        [self handleSDKError:error];
     }];
 }
 
@@ -141,12 +171,18 @@
             self.columnsManager.isLoadingMediaInfo = NO;
 
             if (error) {
-                NSLog(@"Failed to get media info: %@", error.localizedDescription);
-                self.columnsManager.mediaInfoError = error.localizedDescription;
+                NSError *normalizedError = QGSDKWrapError(error,
+                                                          @"getMediaInfo",
+                                                          QGSDKErrorCodeUnknown);
+                [self handleSDKError:normalizedError];
+
+                NSString *displayMessage = QGSDKErrorDisplayMessage(normalizedError);
+                NSLog(@"Failed to get media info: %@", displayMessage);
+                self.columnsManager.mediaInfoError = displayMessage;
 
                 // Show enhanced error alert with retry
                 UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error"
-                                                                               message:error.localizedDescription
+                                                                               message:displayMessage
                                                                         preferredStyle:UIAlertControllerStyleAlert];
 
                 UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
@@ -179,7 +215,9 @@
     [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModePhoto) success:^{
         
     } fail:^(NSInteger mode) {
-        NSLog(@"set fail,current device model:%zd",mode);
+        NSError *error = QGSDKModeConflictError(mode,
+                                               @"setDeviceMode(photo)");
+        [self handleSDKError:error];
     }];
 }
 
@@ -191,7 +229,9 @@
             self.columnsManager.recordingVideo = NO;
             [self.columnsManager reloadData];
         } fail:^(NSInteger mode) {
-            NSLog(@"set fail,current device model:%zd",mode);
+            NSError *error = QGSDKModeConflictError(mode,
+                                                   @"setDeviceMode(video_stop)");
+            [self handleSDKError:error];
         }];
     }
     else {
@@ -199,8 +239,9 @@
             self.columnsManager.recordingVideo = YES;
             [self.columnsManager reloadData];
         } fail:^(NSInteger mode) {
-            NSLog(@"set fail,current device model:%zd",mode);
-
+            NSError *error = QGSDKModeConflictError(mode,
+                                                   @"setDeviceMode(video_start)");
+            [self handleSDKError:error];
         }];
     }
 }
@@ -211,14 +252,18 @@
             self.columnsManager.recordingAudio = NO;
             [self.columnsManager reloadData];
         } fail:^(NSInteger mode) {
-            NSLog(@"set fail,current device model:%zd",mode);
+            NSError *error = QGSDKModeConflictError(mode,
+                                                   @"setDeviceMode(audio_stop)");
+            [self handleSDKError:error];
         }];
     } else {
         [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeAudio) success:^{
             self.columnsManager.recordingAudio = YES;
             [self.columnsManager reloadData];
         } fail:^(NSInteger mode) {
-            NSLog(@"set fail,current device model:%zd",mode);
+            NSError *error = QGSDKModeConflictError(mode,
+                                                   @"setDeviceMode(audio_start)");
+            [self handleSDKError:error];
         }];
     }
 }
@@ -230,52 +275,13 @@
     [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeAIPhoto) success:^{
         NSLog(@"AI Image capture initiated");
     } fail:^(NSInteger mode) {
-        NSLog(@"set fail,current device model:%zd",mode);
+        NSError *error = QGSDKModeConflictError(mode,
+                                               @"setDeviceMode(ai_photo)");
+        [self handleSDKError:error];
     }];
 }
 
-- (void)getTemperature {
-    NSLog(@"Requesting temperature reading...");
-
-    // Show loading state
-    self.columnsManager.temperatureAvailable = NO;
-    [self.columnsManager reloadData];
-
-    // Note: In a real implementation, temperature data would come through:
-    // 1. QCSDKManagerDelegate with QCDeviceDataUpdateTemperature
-    // 2. Continuous health monitoring setup
-    // 3. Real-time temperature data streaming
-
-    // For demo purposes, we'll simulate a realistic temperature reading
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        // Generate a realistic body temperature (36.0-37.5°C)
-        CGFloat randomTemp = 36.0 + (CGFloat)(arc4random_uniform(150)) / 100.0;
-
-        self.columnsManager.temperature = randomTemp;
-        self.columnsManager.temperatureAvailable = YES;
-
-        // Save to state manager for persistence
-        if (self.columnsManager.stateManager) {
-            [self.columnsManager.stateManager setValue:@(randomTemp) forKey:@"temperature"];
-            [self.columnsManager.stateManager setValue:@(YES) forKey:@"temperatureAvailable"];
-        }
-
-        [self.columnsManager reloadData];
-
-        NSLog(@"Temperature reading: %.1f°C (%.1f°F)", randomTemp, randomTemp * 9.0/5.0 + 32.0);
-
-        // Show alert with temperature reading
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Temperature Reading"
-                                                                       message:[NSString stringWithFormat:@"Current body temperature: %.1f°C (%.1f°F)", randomTemp, randomTemp * 9.0/5.0 + 32.0]
-                                                                preferredStyle:UIAlertControllerStyleAlert];
-
-        UIAlertAction *ok = [UIAlertAction actionWithTitle:@"OK"
-                                                     style:UIAlertActionStyleDefault
-                                                   handler:nil];
-        [alert addAction:ok];
-        [self presentViewController:alert animated:YES completion:nil];
-    });
-}
+#pragma mark - Feature Fuctions
 
 - (void)systemReboot {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"System Reboot"
@@ -288,7 +294,9 @@
         [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeRestart) success:^{
             NSLog(@"Normal restart initiated");
         } fail:^(NSInteger mode) {
-            NSLog(@"Normal restart failed, current device model:%zd", mode);
+            NSError *error = QGSDKModeConflictError(mode,
+                                                   @"setDeviceMode(restart)");
+            [self handleSDKError:error];
         }];
     }];
 
@@ -298,7 +306,9 @@
         [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeNoPowerP2P) success:^{
             NSLog(@"P2P restart initiated");
         } fail:^(NSInteger mode) {
-            NSLog(@"P2P restart failed, current device model:%zd", mode);
+            NSError *error = QGSDKModeConflictError(mode,
+                                                   @"setDeviceMode(p2p_restart)");
+            [self handleSDKError:error];
         }];
     }];
 
@@ -316,7 +326,9 @@
             [QCSDKCmdCreator setDeviceMode:(QCOperatorDeviceModeFactoryReset) success:^{
                 NSLog(@"Factory reset initiated");
             } fail:^(NSInteger mode) {
-                NSLog(@"Factory reset failed, current device model:%zd", mode);
+                NSError *error = QGSDKModeConflictError(mode,
+                                                       @"setDeviceMode(factory_reset)");
+                [self handleSDKError:error];
             }];
         }];
 
@@ -346,6 +358,8 @@
 
     [self presentViewController:alert animated:YES completion:nil];
 }
+
+
 
 #pragma mark - Actions
 - (void)viewDidAppear:(BOOL)animated {
@@ -455,9 +469,6 @@
         case QGDeviceActionTypeSystemReboot:
             [self systemReboot];
             break;
-        case QGDeviceActionTypeGetTemperature:
-            [self getTemperature];
-            break;
         case QGDeviceActionTypeReserved:
         default:
             break;
@@ -556,6 +567,7 @@
     self.columnsManager.delegate = nil;
     [QCSDKManager shareInstance].delegate = nil;
     [QCCentralManager shared].delegate = nil;
-}
+
+  }
 
 @end

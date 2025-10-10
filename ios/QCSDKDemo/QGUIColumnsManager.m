@@ -51,8 +51,6 @@
     self.isLoadingMediaInfo = NO;
     self.recordingVideo = NO;
     self.recordingAudio = NO;
-    self.temperature = 0.0;
-    self.temperatureAvailable = NO;
 }
 
 #pragma mark - Public Methods
@@ -85,8 +83,6 @@
             return @"Take AI Image";
         case QGDeviceActionTypeSystemReboot:
             return @"System Reboot";
-        case QGDeviceActionTypeGetTemperature:
-            return @"Get Temperature";
         case QGDeviceActionTypeReserved:
         default:
             return @"";
@@ -108,14 +104,9 @@
         case QGDeviceActionTypeSystemReboot:
             return @"Normal, P2P, or Factory Reset";
 
-        case QGDeviceActionTypeGetTemperature:
-            return [self temperatureDetailText];
-
-        case QGDeviceActionTypeGetBattery:
-            return [NSString stringWithFormat:@"battary:%zd,charing:%zd", self.battery, (NSInteger)self.charging];
+        case QGDeviceActionTypeGetBattery:            return [NSString stringWithFormat:@"battary:%zd,charing:%zd", self.battery, (NSInteger)self.charging];
 
         case QGDeviceActionTypeGetMediaInfo:
-            [self configureMediaInfoCellForActionType:actionType];
             return [self mediaInfoDetailText];
 
         case QGDeviceActionTypeTakePhoto:
@@ -145,13 +136,10 @@
     }
 }
 
-- (NSString *)temperatureDetailText {
-    if (self.temperatureAvailable) {
-        return [NSString stringWithFormat:@"Temperature: %.1f°C (%.1f°F)", self.temperature, self.temperature * 9.0/5.0 + 32.0];
-    } else {
-        return @"Tap to get current temperature";
-    }
-}
+
+
+
+
 
 #pragma mark - UITableViewDataSource
 
@@ -185,31 +173,11 @@
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     cell.textLabel.text = [self titleForActionType:actionType];
 
-    // Handle special cases for different action types
-    switch (actionType) {
-        case QGDeviceActionTypeGetVersion:
-        case QGDeviceActionTypeTimeSync:
-        case QGDeviceActionTypeGetBattery:
-        case QGDeviceActionTypeGetTemperature:
-            cell.detailTextLabel.text = [self detailTextForActionType:actionType];
-            cell.textLabel.textColor = [UIColor labelColor];
-            break;
-
-        case QGDeviceActionTypeGetMediaInfo:
-            [self configureMediaInfoCell:cell];
-            break;
-
-        case QGDeviceActionTypeTakePhoto:
-        case QGDeviceActionTypeToggleVideoRecording:
-        case QGDeviceActionTypeToggleAudioRecording:
-        case QGDeviceActionTypeToggleTakeAIImage:
-        case QGDeviceActionTypeSystemReboot:
-            cell.textLabel.textColor = [UIColor labelColor];
-            break;
-
-        case QGDeviceActionTypeReserved:
-        default:
-            break;
+    if (actionType == QGDeviceActionTypeGetMediaInfo) {
+        [self configureMediaInfoCell:cell];
+    } else {
+        cell.detailTextLabel.text = [self detailTextForActionType:actionType];
+        cell.textLabel.textColor = [UIColor labelColor];
     }
 }
 
@@ -318,12 +286,6 @@
 
     NSNumber *isLoadingMediaInfo = [self.stateManager valueForKey:@"isLoadingMediaInfo"];
     if (isLoadingMediaInfo) self.isLoadingMediaInfo = [isLoadingMediaInfo boolValue];
-
-    NSNumber *temperature = [self.stateManager valueForKey:@"temperature"];
-    if (temperature) self.temperature = [temperature floatValue];
-
-    NSNumber *temperatureAvailable = [self.stateManager valueForKey:@"temperatureAvailable"];
-    if (temperatureAvailable) self.temperatureAvailable = [temperatureAvailable boolValue];
 
     self.mediaInfoError = [self.stateManager valueForKey:@"mediaInfoError"];
     [self reloadData];

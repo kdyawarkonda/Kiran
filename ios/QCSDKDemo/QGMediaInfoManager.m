@@ -7,16 +7,7 @@
 
 #import "QGMediaInfoManager.h"
 #import <QCSDK/QCSDKCmdCreator.h>
-
-// Error domain
-static NSString * const kQGMediaInfoErrorDomain = @"QGMediaInfoErrorDomain";
-
-// Error codes
-typedef NS_ENUM(NSInteger, QGMediaInfoErrorCode) {
-    QGMediaInfoErrorCodeDeviceNotConnected = 1001,
-    QGMediaInfoErrorCodeSDKCommandFailed = 1002,
-    QGMediaInfoErrorCodeInvalidResponse = 1003,
-};
+#import "QGSDKError.h"
 
 @implementation QGMediaInfo
 
@@ -76,9 +67,10 @@ typedef NS_ENUM(NSInteger, QGMediaInfoErrorCode) {
 - (void)getMediaInfoWithCompletion:(void (^)(QGMediaInfo *_Nullable mediaInfo, NSError *_Nullable error))completion {
     // Check if device is connected (basic check)
     if (![self isDeviceReady]) {
-        NSError *error = [NSError errorWithDomain:kQGMediaInfoErrorDomain
-                                             code:QGMediaInfoErrorCodeDeviceNotConnected
-                                         userInfo:@{NSLocalizedDescriptionKey: @"Device not connected or not ready"}];
+        NSError *error = QGSDKErrorMake(QGSDKErrorCodeDeviceNotReady,
+                                        @"getDeviceMedia",
+                                        nil,
+                                        @{NSLocalizedDescriptionKey: @"Device not connected or not ready"});
         if (completion) completion(nil, error);
         return;
     }
@@ -91,9 +83,10 @@ typedef NS_ENUM(NSInteger, QGMediaInfoErrorCode) {
 
         // Validate response
         if (photo < 0 || video < 0 || audio < 0 || totalSize < 0) {
-            NSError *error = [NSError errorWithDomain:kQGMediaInfoErrorDomain
-                                                 code:QGMediaInfoErrorCodeInvalidResponse
-                                             userInfo:@{NSLocalizedDescriptionKey: @"Invalid media data received from device"}];
+            NSError *error = QGSDKErrorMake(QGSDKErrorCodeInvalidParameters,
+                                            @"getDeviceMedia",
+                                            nil,
+                                            @{NSLocalizedDescriptionKey: @"Invalid media data received from device"});
             if (completion) completion(nil, error);
             return;
         }
@@ -112,9 +105,10 @@ typedef NS_ENUM(NSInteger, QGMediaInfoErrorCode) {
     } fail:^{
         NSLog(@"[QGMediaInfoManager] Failed to get media information from device");
 
-        NSError *error = [NSError errorWithDomain:kQGMediaInfoErrorDomain
-                                             code:QGMediaInfoErrorCodeSDKCommandFailed
-                                         userInfo:@{NSLocalizedDescriptionKey: @"Failed to retrieve media information from device"}];
+        NSError *error = QGSDKErrorMake(QGSDKErrorCodeTimeout,
+                                        @"getDeviceMedia",
+                                        nil,
+                                        @{NSLocalizedDescriptionKey: @"Failed to retrieve media information from device"});
         if (completion) completion(nil, error);
     }];
 }
