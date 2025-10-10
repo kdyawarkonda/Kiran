@@ -139,7 +139,8 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    static NSString *cellIdentifier = @"QGColumnsCell";
+    QGDeviceActionType actionType = (QGDeviceActionType)indexPath.row;
+    NSString *cellIdentifier = [NSString stringWithFormat:@"QGColumnsCell_%ld", (long)actionType];
 
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
 
@@ -154,6 +155,9 @@
 
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
     QGDeviceActionType actionType = (QGDeviceActionType)indexPath.row;
+
+    // Reset cell state completely to prevent reuse issues
+    [self resetCellState:cell];
 
     cell.detailTextLabel.numberOfLines = 0;
     cell.detailTextLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -186,6 +190,21 @@
         case QGDeviceActionTypeReserved:
         default:
             break;
+    }
+}
+
+- (void)resetCellState:(UITableViewCell *)cell {
+    // Clear all cell properties to prevent reuse artifacts
+    cell.imageView.image = nil;
+    cell.textLabel.text = @"";
+    cell.detailTextLabel.text = @"";
+    cell.textLabel.textColor = [UIColor labelColor];
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+
+    // Remove any loading indicators or custom views
+    UIView *loadingIndicator = [cell.contentView viewWithTag:999];
+    if (loadingIndicator) {
+        [loadingIndicator removeFromSuperview];
     }
 }
 
@@ -253,8 +272,7 @@
 }
 
 - (void)configureAIImageCell:(UITableViewCell *)cell {
-    // Clear any existing image to avoid cell reuse issues
-    cell.imageView.image = nil;
+    // Note: Cell state is already reset in resetCellState method
 
     if (self.aiImageData && self.aiImageData.length > 0) {
         UIImage *aiImage = [UIImage imageWithData:self.aiImageData];
@@ -279,8 +297,6 @@
                 cell.imageView.image = aiImage;
             }
 
-            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-
             // Update detail text to show image status
             cell.detailTextLabel.text = @"AI Image captured - tap to view";
             cell.textLabel.textColor = [UIColor labelColor];
@@ -289,7 +305,6 @@
         // No AI image available - show placeholder text
         cell.detailTextLabel.text = @"Tap to take AI Image";
         cell.textLabel.textColor = [UIColor labelColor];
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 }
 
