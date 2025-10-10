@@ -12,6 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @class QGUIColumnsManager;
 @class QGMediaInfo;
+@class QGStateManager;
 
 @protocol QGUIColumnsManagerDelegate <NSObject>
 
@@ -70,6 +71,8 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property (nonatomic, assign) BOOL recordingVideo;
 @property (nonatomic, assign) BOOL recordingAudio;
 @property (nonatomic, strong) NSData *aiImageData;
+@property (nonatomic, strong) QGStateManager *stateManager;
+@property (nonatomic, assign) BOOL stateManagementEnabled;
 
 - (instancetype)initWithFrame:(CGRect)frame;
 - (void)reloadData;
@@ -77,6 +80,13 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 - (NSString *)titleForActionType:(QGDeviceActionType)actionType;
 - (NSString *)detailTextForActionType:(QGDeviceActionType)actionType;
 - (void)clearAIImage;
+
+// State Management
+- (void)enableStateManagementWithIdentifier:(NSString *)identifier;
+- (void)disableStateManagement;
+- (BOOL)saveCurrentState;
+- (BOOL)restoreSavedState;
+- (void)clearSavedState;
 
 @end
 

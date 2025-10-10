@@ -46,6 +46,9 @@
     [self.view addSubview:self.columnsManager.tableView];
     [self.columnsManager setHidden:YES];
 
+    // Enable state management with unique identifier
+    [self.columnsManager enableStateManagementWithIdentifier:@"QCSDKColumnsState"];
+
     [QCSDKManager shareInstance].delegate = self;
 }
 

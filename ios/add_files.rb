@@ -20,7 +20,9 @@ files_to_add = [
   'QGProgressiveUIEnhancer.h',
   'QGProgressiveUIEnhancer.m',
   'QGUIColumnsManager.h',
-  'QGUIColumnsManager.m'
+  'QGUIColumnsManager.m',
+  'QGStateManager.h',
+  'QGStateManager.m'
 ]
 
 # Get the main group
