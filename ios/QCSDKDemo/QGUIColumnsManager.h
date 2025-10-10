@@ -71,7 +71,6 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property (nonatomic, assign) BOOL recordingVideo;
 @property (nonatomic, assign) BOOL recordingAudio;
 @property (nonatomic, strong) NSData *aiImageData;
-@property (nonatomic, strong) QGStateManager *stateManager;
 @property (nonatomic, assign) BOOL stateManagementEnabled;
 
 - (instancetype)initWithFrame:(CGRect)frame;
@@ -81,12 +80,9 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 - (NSString *)detailTextForActionType:(QGDeviceActionType)actionType;
 - (void)clearAIImage;
 
-// State Management
-- (void)enableStateManagementWithIdentifier:(NSString *)identifier;
-- (void)disableStateManagement;
-- (BOOL)saveCurrentState;
-- (BOOL)restoreSavedState;
-- (void)clearSavedState;
+// State Management - Direct access to QStateManager
+@property (nonatomic, strong) QGStateManager *stateManager;
+- (void)setupStateManagerWithIdentifier:(NSString *)identifier;
 
 @end
 

@@ -313,16 +313,11 @@
 - (void)clearAIImage {
     self.aiImageData = nil;
     [self reloadData];
-
-    // Auto-save if state management is enabled
-    if (self.stateManagementEnabled) {
-        [self saveCurrentState];
-    }
 }
 
 #pragma mark - State Management
 
-- (void)enableStateManagementWithIdentifier:(NSString *)identifier {
+- (void)setupStateManagerWithIdentifier:(NSString *)identifier {
     if (!identifier || identifier.length == 0) {
         NSLog(@"Error: Cannot enable state management with invalid identifier");
         return;
@@ -330,169 +325,38 @@
 
     self.stateManager = [[QGStateManager alloc] initWithIdentifier:identifier
                                                    storageLocation:QGStateStorageLocationUserDefaults];
-    self.stateManager.delegate = self;
-    self.stateManagementEnabled = YES;
-
-    // Try to restore saved state
-    [self restoreSavedState];
-
-    // Enable auto-save with 30-second interval
     [self.stateManager enableAutoSave];
-    [self.stateManager startAutoSaveTimer];
-
+    [self restoreSavedState];
     NSLog(@"State management enabled with identifier: %@", identifier);
 }
 
-- (void)disableStateManagement {
-    // Save current state before disabling
-    [self saveCurrentState];
 
-    self.stateManagementEnabled = NO;
-    [self.stateManager disableAutoSave];
-    self.stateManager.delegate = nil;
-    self.stateManager = nil;
-
-    NSLog(@"State management disabled");
-}
-
-- (BOOL)saveCurrentState {
-    if (!self.stateManagementEnabled || !self.stateManager) {
-        return NO;
-    }
-
-    // Prepare device state
-    NSDictionary *deviceState = @{
-        @"hardVersion": self.hardVersion ?: @"",
-        @"firmVersion": self.firmVersion ?: @"",
-        @"hardWiFiVersion": self.hardWiFiVersion ?: @"",
-        @"firmWiFiVersion": self.firmWiFiVersion ?: @"",
-        @"mac": self.mac ?: @"",
-        @"battery": @(self.battery),
-        @"charging": @(self.charging),
-        @"recordingVideo": @(self.recordingVideo),
-        @"recordingAudio": @(self.recordingAudio)
-    };
-
-    // Prepare UI state
-    NSMutableDictionary *uiState = [NSMutableDictionary dictionary];
-
-    if (self.currentMediaInfo) {
-        uiState[@"mediaInfo"] = @{
-            @"photoCount": @(self.currentMediaInfo.photoCount),
-            @"videoCount": @(self.currentMediaInfo.videoCount),
-            @"audioCount": @(self.currentMediaInfo.audioCount),
-            @"totalSize": @(self.currentMediaInfo.totalSize)
-        };
-    }
-
-    if (self.aiImageData) {
-        uiState[@"hasAIImage"] = @(YES);
-        // Note: We don't save the actual image data, just that it exists
-    }
-
-    if (self.mediaInfoError) {
-        uiState[@"mediaInfoError"] = self.mediaInfoError;
-    }
-
-    uiState[@"isLoadingMediaInfo"] = @(self.isLoadingMediaInfo);
-
-    // Combine into complete state
-    NSDictionary *completeState = @{
-        @"deviceState": deviceState,
-        @"uiState": uiState
-    };
-
-    NSError *error;
-    BOOL success = [self.stateManager saveState:completeState error:&error];
-
-    if (!success) {
-        NSLog(@"Failed to save state: %@", error.localizedDescription);
-    } else {
-        NSLog(@"State saved successfully");
-    }
-
-    return success;
-}
-
-- (BOOL)restoreSavedState {
-    if (!self.stateManagementEnabled || !self.stateManager) {
-        return NO;
-    }
-
-    NSError *error;
-    NSDictionary *savedState = [self.stateManager restoreStateWithError:&error];
-
-    if (!savedState) {
-        NSLog(@"No saved state available or restoration failed: %@", error.localizedDescription);
-        return NO;
-    }
-
+- (void)restoreSavedState {
     // Restore device state
-    NSDictionary *deviceState = savedState[@"deviceState"];
-    if (deviceState) {
-        self.hardVersion = deviceState[@"hardVersion"];
-        self.firmVersion = deviceState[@"firmVersion"];
-        self.hardWiFiVersion = deviceState[@"hardWiFiVersion"];
-        self.firmWiFiVersion = deviceState[@"firmWiFiVersion"];
-        self.mac = deviceState[@"mac"];
-        self.battery = [deviceState[@"battery"] integerValue];
-        self.charging = [deviceState[@"charging"] boolValue];
-        self.recordingVideo = [deviceState[@"recordingVideo"] boolValue];
-        self.recordingAudio = [deviceState[@"recordingAudio"] boolValue];
-    }
+    self.hardVersion = [self.stateManager valueForKey:@"hardVersion"];
+    self.firmVersion = [self.stateManager valueForKey:@"firmVersion"];
+    self.hardWiFiVersion = [self.stateManager valueForKey:@"hardWiFiVersion"];
+    self.firmWiFiVersion = [self.stateManager valueForKey:@"firmWiFiVersion"];
+    self.mac = [self.stateManager valueForKey:@"mac"];
 
-    // Restore UI state
-    NSDictionary *uiState = savedState[@"uiState"];
-    if (uiState) {
-        // Restore media info
-        NSDictionary *mediaInfoDict = uiState[@"mediaInfo"];
-        if (mediaInfoDict) {
-            // Note: We create a new QGMediaInfo object here
-            // In a real implementation, you'd need the proper constructor
-            self.currentMediaInfo = [[QGMediaInfo alloc] initWithPhotoCount:[mediaInfoDict[@"photoCount"] integerValue]
-                                                                 videoCount:[mediaInfoDict[@"videoCount"] integerValue]
-                                                                 audioCount:[mediaInfoDict[@"audioCount"] integerValue]
-                                                                  totalSize:[mediaInfoDict[@"totalSize"] integerValue]];
-        }
+    NSNumber *battery = [self.stateManager valueForKey:@"battery"];
+    if (battery) self.battery = [battery integerValue];
 
-        // Restore other UI state
-        self.mediaInfoError = uiState[@"mediaInfoError"];
-        self.isLoadingMediaInfo = [uiState[@"isLoadingMediaInfo"] boolValue];
+    NSNumber *charging = [self.stateManager valueForKey:@"charging"];
+    if (charging) self.charging = [charging boolValue];
 
-        // Note: AI image data is not restored, only the fact that it existed
-        // The actual image would need to be re-captured from the device
-    }
+    NSNumber *recordingVideo = [self.stateManager valueForKey:@"recordingVideo"];
+    if (recordingVideo) self.recordingVideo = [recordingVideo boolValue];
 
-    // Update UI
+    NSNumber *recordingAudio = [self.stateManager valueForKey:@"recordingAudio"];
+    if (recordingAudio) self.recordingAudio = [recordingAudio boolValue];
+
+    NSNumber *isLoadingMediaInfo = [self.stateManager valueForKey:@"isLoadingMediaInfo"];
+    if (isLoadingMediaInfo) self.isLoadingMediaInfo = [isLoadingMediaInfo boolValue];
+
+    self.mediaInfoError = [self.stateManager valueForKey:@"mediaInfoError"];
     [self reloadData];
-
-    NSLog(@"State restored successfully");
-    return YES;
 }
 
-- (void)clearSavedState {
-    if (self.stateManager) {
-        [self.stateManager clearSavedState];
-        NSLog(@"Saved state cleared");
-    }
-}
-
-#pragma mark - QGStateManagerDelegate
-
-- (void)stateManager:(QGStateManager *)manager didSaveState:(NSDictionary *)state {
-    NSLog(@"State auto-saved successfully");
-}
-
-- (void)stateManager:(QGStateManager *)manager didRestoreState:(NSDictionary *)state {
-    NSLog(@"State auto-restored successfully");
-}
-
-- (void)stateManager:(QGStateManager *)manager didFailWithError:(NSError *)error {
-    NSLog(@"State manager error: %@", error.localizedDescription);
-    if ([self.delegate respondsToSelector:@selector(columnsManager:didFailWithError:)]) {
-        // Note: This would require adding an error delegate method to the main delegate protocol
-        NSLog(@"Error in state management: %@", error.localizedDescription);
-    }
-}
 
 @end

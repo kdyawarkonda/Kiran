@@ -47,7 +47,7 @@
     [self.columnsManager setHidden:YES];
 
     // Enable state management with unique identifier
-    [self.columnsManager enableStateManagementWithIdentifier:@"QCSDKColumnsState"];
+    [self.columnsManager setupStateManagerWithIdentifier:@"QCSDKColumnsState"];
 
     [QCSDKManager shareInstance].delegate = self;
 }
