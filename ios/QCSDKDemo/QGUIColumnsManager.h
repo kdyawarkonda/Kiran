@@ -53,8 +53,11 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
     /// Wearing detection status
     QGDeviceActionTypeWearingDetection,
 
-    /// Reserved for future use
-    QGDeviceActionTypeReserved,
+    /// Initiate Wi-Fi transfer flow
+    QGDeviceActionTypeWiFiTransfer,
+
+    /// Number of available actions
+    QGDeviceActionTypeCount,
 };
 
 @interface QGUIColumnsManager : NSObject
@@ -76,6 +79,7 @@ typedef NS_ENUM(NSInteger, QGDeviceActionType) {
 @property (nonatomic, assign) BOOL recordingVideo;
 @property (nonatomic, assign) BOOL recordingAudio;
 @property (nonatomic, assign) BOOL stateManagementEnabled;
+@property (nonatomic, copy) NSString *wifiTransferStatus;
 
 - (instancetype)initWithFrame:(CGRect)frame;
 - (void)reloadData;

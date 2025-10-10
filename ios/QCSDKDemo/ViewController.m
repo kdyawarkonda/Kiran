@@ -18,6 +18,7 @@
 #import "QGAIImageView.h"
 #import "QGStateManager.h"
 #import "QGSDKError.h"
+#import "WiFiTransferViewController.h"
 
 // Remove duplicate enum definition since it's now in QGUIColumnsManager.h
 
@@ -27,7 +28,6 @@
 
 @property(nonatomic,strong)UIBarButtonItem *rightItem;
 @property(nonatomic,strong)QGUIColumnsManager *columnsManager;
-
 @end
 
 @implementation ViewController
@@ -469,7 +469,12 @@
         case QGDeviceActionTypeSystemReboot:
             [self systemReboot];
             break;
-        case QGDeviceActionTypeReserved:
+        case QGDeviceActionTypeWiFiTransfer: {
+            WiFiTransferViewController *transferVC = [[WiFiTransferViewController alloc] init];
+            [self.navigationController pushViewController:transferVC animated:YES];
+            break;
+        }
+        case QGDeviceActionTypeCount:
         default:
             break;
     }

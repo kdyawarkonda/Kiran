@@ -51,6 +51,7 @@
     self.isLoadingMediaInfo = NO;
     self.recordingVideo = NO;
     self.recordingAudio = NO;
+    self.wifiTransferStatus = @"Launches the Wi-Fi transfer assistant";
 }
 
 #pragma mark - Public Methods
@@ -83,7 +84,9 @@
             return @"Take AI Image";
         case QGDeviceActionTypeSystemReboot:
             return @"System Reboot";
-        case QGDeviceActionTypeReserved:
+        case QGDeviceActionTypeWiFiTransfer:
+            return @"Wi-Fi Transfer";
+        case QGDeviceActionTypeCount:
         default:
             return @"";
     }
@@ -113,7 +116,11 @@
         case QGDeviceActionTypeToggleVideoRecording:
         case QGDeviceActionTypeToggleAudioRecording:
         case QGDeviceActionTypeToggleTakeAIImage:
-        case QGDeviceActionTypeReserved:
+        case QGDeviceActionTypeWearingDetection:
+            return @"";
+        case QGDeviceActionTypeWiFiTransfer:
+            return self.wifiTransferStatus ?: @"Not started";
+        case QGDeviceActionTypeCount:
         default:
             return @"";
     }
@@ -144,7 +151,7 @@
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return QGDeviceActionTypeReserved;
+    return QGDeviceActionTypeCount;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -288,7 +295,18 @@
     if (isLoadingMediaInfo) self.isLoadingMediaInfo = [isLoadingMediaInfo boolValue];
 
     self.mediaInfoError = [self.stateManager valueForKey:@"mediaInfoError"];
+    NSString *wifiStatus = [self.stateManager valueForKey:@"wifiTransferStatus"];
+    if (wifiStatus.length > 0) {
+        self.wifiTransferStatus = wifiStatus;
+    }
     [self reloadData];
+}
+
+- (void)setWifiTransferStatus:(NSString *)wifiTransferStatus {
+    _wifiTransferStatus = [wifiTransferStatus copy];
+    if (self.stateManager && wifiTransferStatus) {
+        [self.stateManager setValue:wifiTransferStatus forKey:@"wifiTransferStatus"];
+    }
 }
 
 

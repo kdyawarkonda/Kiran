@@ -18,9 +18,13 @@
 		AA13172A2E31290900B03938 /* QCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1317282E3128F300B03938 /* QCSDK.framework */; };
 		AA13172B2E31290900B03938 /* QCSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = AA1317282E3128F300B03938 /* QCSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		AA1318002F2F9B0C00B03938 /* QGMediaInfoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */; };
-		C47B5F9DB713CFE69E3B2C30 /* QGStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A221BCF9683A9FAA305A1317 /* QGStateManager.m */; };
-		QGAIImageView1234567890 /* QGAIImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = QGAIImageView0987654321 /* QGAIImageView.m */; };
 		B3A4D5E62F3A1B2300ABCDE2 /* QGSDKError.m in Sources */ = {isa = PBXBuildFile; fileRef = B3A4D5E62F3A1B2300ABCDE1 /* QGSDKError.m */; };
+		C47B5F9DB713CFE69E3B2C30 /* QGStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A221BCF9683A9FAA305A1317 /* QGStateManager.m */; };
+		EF0A24A62F4B1E6F00A1CD0C /* WiFiTransferViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0A24A62F4B1E6F00A1CD0B /* WiFiTransferViewController.m */; };
+		EF0A24A62F4B1E6F00A1CD03 /* GlassesWiFiHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0A24A62F4B1E6F00A1CD02 /* GlassesWiFiHandler.m */; };
+		EF0A24A62F4B1E6F00A1CD06 /* GlassesMediaDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0A24A62F4B1E6F00A1CD05 /* GlassesMediaDownloader.m */; };
+		EF0A24A62F4B1E6F00A1CD09 /* MediaGalleryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EF0A24A62F4B1E6F00A1CD08 /* MediaGalleryViewController.m */; };
+		QGAIImageView1234567890 /* QGAIImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = QGAIImageView0987654321 /* QGAIImageView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,8 +46,6 @@
 		2D21BB4D67811EE6478EB2D6 /* QGUIColumnsManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = QGUIColumnsManager.h; sourceTree = "<group>"; };
 		556B61F94A8C6C699FEC9ABF /* QGUIColumnsManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = QGUIColumnsManager.m; sourceTree = "<group>"; };
 		A221BCF9683A9FAA305A1317 /* QGStateManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = QGStateManager.m; sourceTree = "<group>"; };
-		B3A4D5E62F3A1B2300ABCDE0 /* QGSDKError.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = QGSDKError.h; sourceTree = "<group>"; };
-		B3A4D5E62F3A1B2300ABCDE1 /* QGSDKError.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = QGSDKError.m; sourceTree = "<group>"; };
 		AA1313572E2F903500B03938 /* QCSDKDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QCSDKDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1313772E2F904500B03938 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		AA1313782E2F904500B03938 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -61,6 +63,17 @@
 		AA1317282E3128F300B03938 /* QCSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = QCSDK.framework; sourceTree = SOURCE_ROOT; };
 		AA1318012F2F9B0C00B03938 /* QGMediaInfoManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QGMediaInfoManager.m; sourceTree = "<group>"; };
 		AA1318022F2F9B0C00B03938 /* QGMediaInfoManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QGMediaInfoManager.h; sourceTree = "<group>"; };
+		B3A4D5E62F3A1B2300ABCDE0 /* QGSDKError.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = QGSDKError.h; sourceTree = "<group>"; };
+		B3A4D5E62F3A1B2300ABCDE1 /* QGSDKError.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = QGSDKError.m; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD01 /* GlassesWiFiHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GlassesWiFiHandler.h; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD02 /* GlassesWiFiHandler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GlassesWiFiHandler.m; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD04 /* GlassesMediaDownloader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GlassesMediaDownloader.h; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD05 /* GlassesMediaDownloader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GlassesMediaDownloader.m; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD07 /* MediaGalleryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MediaGalleryViewController.h; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD08 /* MediaGalleryViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MediaGalleryViewController.m; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD0A /* WiFiTransferViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiFiTransferViewController.h; sourceTree = "<group>"; };
+		EF0A24A62F4B1E6F00A1CD0B /* WiFiTransferViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WiFiTransferViewController.m; sourceTree = "<group>"; };
+		EF6F7A112F4B5C0D00A1B233 /* QCSDKDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QCSDKDemo.entitlements; sourceTree = "<group>"; };
 		QGAIImageView0987654321 /* QGAIImageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QGAIImageView.m; sourceTree = "<group>"; };
 		QGAIImageViewABCDEFGHI /* QGAIImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QGAIImageView.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -97,6 +110,7 @@
 		AA1313842E2F904500B03938 /* QCSDKDemo */ = {
 			isa = PBXGroup;
 			children = (
+				EF6F7A112F4B5C0D00A1B233 /* QCSDKDemo.entitlements */,
 				AA1317282E3128F300B03938 /* QCSDK.framework */,
 				AA1313772E2F904500B03938 /* AppDelegate.h */,
 				AA1313782E2F904500B03938 /* AppDelegate.m */,
@@ -120,6 +134,14 @@
 				B3A4D5E62F3A1B2300ABCDE1 /* QGSDKError.m */,
 				QGAIImageViewABCDEFGHI /* QGAIImageView.h */,
 				QGAIImageView0987654321 /* QGAIImageView.m */,
+				EF0A24A62F4B1E6F00A1CD01 /* GlassesWiFiHandler.h */,
+				EF0A24A62F4B1E6F00A1CD02 /* GlassesWiFiHandler.m */,
+				EF0A24A62F4B1E6F00A1CD04 /* GlassesMediaDownloader.h */,
+				EF0A24A62F4B1E6F00A1CD05 /* GlassesMediaDownloader.m */,
+				EF0A24A62F4B1E6F00A1CD07 /* MediaGalleryViewController.h */,
+				EF0A24A62F4B1E6F00A1CD08 /* MediaGalleryViewController.m */,
+				EF0A24A62F4B1E6F00A1CD0A /* WiFiTransferViewController.h */,
+				EF0A24A62F4B1E6F00A1CD0B /* WiFiTransferViewController.m */,
 			);
 			path = QCSDKDemo;
 			sourceTree = "<group>";
@@ -213,6 +235,10 @@
 				C47B5F9DB713CFE69E3B2C30 /* QGStateManager.m in Sources */,
 				B3A4D5E62F3A1B2300ABCDE2 /* QGSDKError.m in Sources */,
 				QGAIImageView1234567890 /* QGAIImageView.m in Sources */,
+				EF0A24A62F4B1E6F00A1CD03 /* GlassesWiFiHandler.m in Sources */,
+				EF0A24A62F4B1E6F00A1CD06 /* GlassesMediaDownloader.m in Sources */,
+				EF0A24A62F4B1E6F00A1CD09 /* MediaGalleryViewController.m in Sources */,
+				EF0A24A62F4B1E6F00A1CD0C /* WiFiTransferViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,6 +261,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = QCSDKDemo/QCSDKDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 42R8ZPM5N8;
@@ -257,7 +284,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.qcwx.dev.QCSDKDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ebowwa.QCSDKDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -269,6 +296,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = QCSDKDemo/QCSDKDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 42R8ZPM5N8;
@@ -291,7 +319,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.qcwx.dev.QCSDKDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ebowwa.QCSDKDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = 1;
