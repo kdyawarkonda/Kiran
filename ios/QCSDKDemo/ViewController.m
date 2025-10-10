@@ -338,6 +338,12 @@
 }
 
 - (void)columnsManager:(QGUIColumnsManager *)manager didSelectAIImage:(NSData *)imageData {
+    // Validate image data before showing options
+    if (!imageData || imageData.length == 0) {
+        NSLog(@"Invalid AI image data received");
+        return;
+    }
+
     // Show options for the AI image
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"AI Image Options"
                                                                    message:@"What would you like to do with this AI image?"
@@ -346,7 +352,9 @@
     UIAlertAction *viewAction = [UIAlertAction actionWithTitle:@"View Full Image"
                                                          style:UIAlertActionStyleDefault
                                                        handler:^(UIAlertAction * _Nonnull action) {
-        [self showFullScreenAIImage:imageData];
+        // Make a copy of the image data to prevent modification during async operations
+        NSData *imageDataCopy = [imageData copy];
+        [self showFullScreenAIImage:imageDataCopy];
     }];
 
     UIAlertAction *clearAction = [UIAlertAction actionWithTitle:@"Clear Image"
@@ -362,32 +370,86 @@
     [alert addAction:viewAction];
     [alert addAction:clearAction];
     [alert addAction:cancelAction];
-    [self presentViewController:alert animated:YES completion:nil];
+
+    // Safe presentation with error handling
+    if (self.presentedViewController) {
+        NSLog(@"Cannot present alert: controller already presenting");
+        return;
+    }
+
+    @try {
+        [self presentViewController:alert animated:YES completion:nil];
+    } @catch (NSException *exception) {
+        NSLog(@"Error presenting AI image options alert: %@", exception.reason);
+    }
 }
 
 - (void)showFullScreenAIImage:(NSData *)imageData {
+    // Validate image data first
+    if (!imageData || imageData.length == 0) {
+        NSLog(@"Invalid image data provided to showFullScreenAIImage");
+        return;
+    }
+
     UIImage *image = [UIImage imageWithData:imageData];
-    if (!image) return;
+    if (!image) {
+        NSLog(@"Failed to create image from data in showFullScreenAIImage");
+        return;
+    }
 
     // Create image view controller
     UIViewController *imageViewController = [[UIViewController alloc] init];
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:imageViewController.view.bounds];
+    imageViewController.title = @"AI Image";
+
+    // Create image view with proper frame setup
+    UIImageView *imageView = [[UIImageView alloc] init];
     imageView.image = image;
     imageView.contentMode = UIViewContentModeScaleAspectFit;
     imageView.backgroundColor = [UIColor blackColor];
-    imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    imageView.translatesAutoresizingMaskIntoConstraints = NO; // Use Auto Layout instead of autoresizingMask
+
     [imageViewController.view addSubview:imageView];
 
-    // Add tap to dismiss
-    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:imageViewController action:@selector(dismissViewControllerAnimated:completion:)];
+    // Set up Auto Layout constraints
+    [NSLayoutConstraint activateConstraints:@[
+        [imageView.topAnchor constraintEqualToAnchor:imageViewController.view.safeAreaLayoutGuide.topAnchor],
+        [imageView.leadingAnchor constraintEqualToAnchor:imageViewController.view.leadingAnchor],
+        [imageView.trailingAnchor constraintEqualToAnchor:imageViewController.view.trailingAnchor],
+        [imageView.bottomAnchor constraintEqualToAnchor:imageViewController.view.safeAreaLayoutGuide.bottomAnchor]
+    ]];
+
+    // Add safe tap to dismiss with weak reference to prevent retain cycles
+    __weak typeof(imageViewController) weakImageViewController = imageViewController;
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissImageViewController:)];
     [imageView addGestureRecognizer:tapGesture];
     imageView.userInteractionEnabled = YES;
 
-    // Add close button
-    imageViewController.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:imageViewController action:@selector(dismissViewControllerAnimated:completion:)];
+    // Add close button with proper target
+    UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                 target:self
+                                                                                 action:@selector(dismissImageViewController:)];
+    imageViewController.navigationItem.rightBarButtonItem = doneButton;
 
+    // Present with proper memory management
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:imageViewController];
-    [self presentViewController:navController animated:YES completion:nil];
+    navController.modalPresentationStyle = UIModalPresentationFullScreen;
+
+    @try {
+        [self presentViewController:navController animated:YES completion:nil];
+    } @catch (NSException *exception) {
+        NSLog(@"Error presenting image view controller: %@", exception.reason);
+    }
+}
+
+- (void)dismissImageViewController:(id)sender {
+    // Safe dismiss with proper cleanup
+    if (self.presentedViewController) {
+        @try {
+            [self dismissViewControllerAnimated:YES completion:nil];
+        } @catch (NSException *exception) {
+            NSLog(@"Error dismissing image view controller: %@", exception.reason);
+        }
+    }
 }
 
 - (void)dealloc {
