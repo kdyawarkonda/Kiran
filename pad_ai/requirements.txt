@@ -3,3 +3,4 @@ torchvision
 numpy
 scikit-learn
 tqdm
+kagglehub

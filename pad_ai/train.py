@@ -13,7 +13,7 @@ def train_model():
 
     # Hyperparameters
     batch_size = 16
-    epochs = 5
+    epochs = 20
     learning_rate = 0.001
 
     # Data directory check

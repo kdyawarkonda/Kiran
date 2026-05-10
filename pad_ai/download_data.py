@@ -1,75 +1,80 @@
 import os
-import urllib.request
-import tarfile
-import random
-from PIL import Image, ImageDraw
-import numpy as np
+import shutil
+import kagglehub
 
-def create_synthetic_thermal_dataset(base_dir="data", num_samples=100):
-    """
-    Since medical thermal datasets (like IEEE or Kaggle) require user authentication/login
-    to download, this script programmatically generates highly realistic pseudo-thermal
-    images of feet and saves them to disk as PNG files.
-    This allows the AI to train on actual image files loaded from a directory structure.
-    """
-    print(f"Creating synthetic thermal image dataset in '{base_dir}'...")
+def download_and_organize_dataset():
+    print("Downloading the Kaggle dataset 'Thermography images of diabetic foot'...")
 
-    classes = ['healthy', 'pad_risk']
-    splits = ['train', 'val']
+    # Download latest version
+    download_path = kagglehub.dataset_download("vuppalaadithyasairam/thermography-images-of-diabetic-foot")
+    print(f"Dataset downloaded to: {download_path}")
 
-    # Create directory structure
-    for split in splits:
-        for cls in classes:
-            os.makedirs(os.path.join(base_dir, split, cls), exist_ok=True)
+    # Organize into our expected structure: data/train/healthy/ and data/train/pad_risk/
+    # The Kaggle dataset structure needs to be mapped.
+    # Typically, datasets have class folders inside. Let's see what's in there.
 
-    # Generate images
-    for split in splits:
-        n_imgs = num_samples if split == 'train' else int(num_samples * 0.2)
+    base_dir = "data"
+    train_dir = os.path.join(base_dir, "train")
+    val_dir = os.path.join(base_dir, "val")
 
-        for cls in classes:
-            dir_path = os.path.join(base_dir, split, cls)
+    # We will clear out the existing synthetic data
+    if os.path.exists(base_dir):
+        print(f"Cleaning up existing '{base_dir}' directory...")
+        shutil.rmtree(base_dir)
 
-            for i in range(n_imgs):
-                # Create a base blank image (background)
-                img = Image.new('L', (128, 128), color=0)
-                draw = ImageDraw.Draw(img)
+    os.makedirs(os.path.join(train_dir, "healthy"), exist_ok=True)
+    os.makedirs(os.path.join(train_dir, "pad_risk"), exist_ok=True)
+    os.makedirs(os.path.join(val_dir, "healthy"), exist_ok=True)
+    os.makedirs(os.path.join(val_dir, "pad_risk"), exist_ok=True)
 
-                # Draw a generic "foot" shape
-                # Ellipse for main foot body
-                draw.ellipse([30, 20, 90, 110], fill=150)
-                # Toes
-                draw.ellipse([30, 10, 45, 30], fill=140)
-                draw.ellipse([45, 5, 55, 25], fill=140)
-                draw.ellipse([55, 5, 65, 25], fill=140)
-                draw.ellipse([65, 10, 80, 30], fill=140)
+    print("Organizing dataset...")
 
-                # Convert to numpy to add "thermal" properties
-                img_arr = np.array(img, dtype=np.float32)
+    # Let's inspect the downloaded path to see how the Kaggle user structured it
+    # Usually it's either unzipped directly or in subfolders like "Normal" and "Diabetic"
 
-                # Add noise
-                noise = np.random.normal(0, 5, img_arr.shape)
-                img_arr = img_arr + noise
+    # Helper to recursively find image files and their parent directories
+    all_images = []
+    for root, _, files in os.walk(download_path):
+        for file in files:
+            if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                all_images.append(os.path.join(root, file))
 
-                if cls == 'healthy':
-                    # Healthy feet are warm (higher pixel values in the center)
-                    # Add a warm spot
-                    img_arr[40:80, 40:80] += 50
-                else:
-                    # PAD Risk feet have cold spots (ischemia)
-                    # Subtract pixel values to simulate cold toes/extremities
-                    img_arr[10:40, 30:80] -= 40
+    if not all_images:
+        print("No images found in the downloaded dataset.")
+        return
 
-                # Clip and convert back to image
-                img_arr = np.clip(img_arr, 0, 255).astype(np.uint8)
-                final_img = Image.fromarray(img_arr)
+    # We need to map the Kaggle dataset's class names to our 'healthy' and 'pad_risk'
+    healthy_count = 0
+    risk_count = 0
 
-                # Save to disk
-                filepath = os.path.join(dir_path, f"therm_{i}.png")
-                final_img.save(filepath)
+    # We'll put 80% in train, 20% in val
+    for img_path in all_images:
+        path_lower = img_path.lower()
+        # Guess the class based on the folder or file name
+        # Common class names for this dataset: 'Normal', 'Control' vs 'Diabetic', 'DFU', 'Abnormal'
+        if 'normal' in path_lower or 'control' in path_lower:
+            target_class = 'healthy'
+        elif 'diabet' in path_lower or 'dfu' in path_lower or 'ulcer' in path_lower or 'abnormal' in path_lower:
+            target_class = 'pad_risk'
+        else:
+            # If we can't figure it out, skip or default to healthy
+            continue
 
-    print(f"Successfully generated {num_samples} training and {int(num_samples*0.2)} validation images.")
+        # 80/20 train/val split based on a simple counter/hash
+        is_val = (healthy_count + risk_count) % 5 == 0
+
+        if target_class == 'healthy':
+            dest_dir = os.path.join(val_dir if is_val else train_dir, "healthy")
+            shutil.copy2(img_path, os.path.join(dest_dir, os.path.basename(img_path)))
+            healthy_count += 1
+        else:
+            dest_dir = os.path.join(val_dir if is_val else train_dir, "pad_risk")
+            shutil.copy2(img_path, os.path.join(dest_dir, os.path.basename(img_path)))
+            risk_count += 1
+
+    print(f"Dataset organization complete!")
+    print(f"Total Healthy samples: {healthy_count}")
+    print(f"Total PAD Risk samples: {risk_count}")
 
 if __name__ == "__main__":
-    # Ensure we are running from pad_ai
-    os.makedirs("data", exist_ok=True)
-    create_synthetic_thermal_dataset(base_dir="data", num_samples=200)
+    download_and_organize_dataset()
