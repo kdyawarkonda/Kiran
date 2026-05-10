@@ -6,6 +6,7 @@ from dataset import PADDataset
 from model import PADDetectionModel
 import numpy as np
 from sklearn.metrics import accuracy_score, roc_auc_score
+import os
 
 def train_model():
     print("--- Initializing PAD Multimodal AI Training Pipeline ---")
@@ -15,10 +16,17 @@ def train_model():
     epochs = 5
     learning_rate = 0.001
 
+    # Data directory check
+    data_dir = "data" if os.path.exists("data") else None
+
     # 1. Load Data
-    print("Generating synthetic datasets...")
-    train_dataset = PADDataset(num_samples=200)
-    val_dataset = PADDataset(num_samples=50)
+    if data_dir:
+        print(f"Loading real thermal dataset from '{data_dir}'...")
+    else:
+        print("No 'data' directory found. Using mock synthetic data...")
+
+    train_dataset = PADDataset(data_dir=data_dir, split='train', num_samples=200)
+    val_dataset = PADDataset(data_dir=data_dir, split='val', num_samples=50)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -86,7 +94,7 @@ def train_model():
         accuracy = accuracy_score(all_labels, binary_preds)
 
         try:
-            # AUC can fail if the mock dataset generates only 1 class in the batch
+            # AUC can fail if the dataset generates only 1 class in the batch
             auc = roc_auc_score(all_labels, all_preds)
         except ValueError:
             auc = 0.5
