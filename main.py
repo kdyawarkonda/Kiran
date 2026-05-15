@@ -1,8 +1,15 @@
 import os
-import json
+import argparse
 from drug_discovery_agents import AgentManager
 
 def main():
+    parser = argparse.ArgumentParser(description="Run Multi-Agent Drug Discovery System")
+    parser.add_argument("--pdb", type=str, default="drug_discovery_agents/data/dummy_galectin_3.pdb",
+                        help="Path to the protein PDB file")
+    parser.add_argument("--csv", type=str, default="drug_discovery_agents/data/dummy_chemicals.csv",
+                        help="Path to the chemical dataset CSV file")
+    args = parser.parse_args()
+
     print("Initializing Multi-Agent Drug Discovery System...")
 
     # We pass llm=None here to use the fallback simulated tool execution
@@ -11,17 +18,22 @@ def main():
     manager = AgentManager(llm=None)
 
     # 1. User uploads a protein structure (Galectin-3 variant)
-    pdb_path = "drug_discovery_agents/data/dummy_galectin_3.pdb"
+    pdb_path = args.pdb
+    if not os.path.exists(pdb_path):
+        print(f"Error: PDB file not found at {pdb_path}")
+        return
+
     print(f"\n[System] Uploading protein structure: {pdb_path}")
 
     # 2. AgentManager creates a new agent for this protein
     agent_serial = manager.add_agent(protein_pdb=pdb_path)
 
-    # (Optional) You can add more agents for different variants here:
-    # manager.add_agent(protein_pdb="path/to/another_variant.pdb")
-
     # 3. User provides a list of chemicals in a CSV
-    csv_path = "drug_discovery_agents/data/dummy_chemicals.csv"
+    csv_path = args.csv
+    if not os.path.exists(csv_path):
+        print(f"Error: CSV file not found at {csv_path}")
+        return
+
     print(f"\n[System] Loading chemical dataset: {csv_path}")
 
     # 4. Run the screening process in parallel
