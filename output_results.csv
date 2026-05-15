@@ -1,0 +1,4 @@
+Agent,Protein,Chemical,Affinity (kcal/mol),Toxicity Risk,Stability Score,Docking & Mechanism,Pathway,Drug Score
+AGENT-001,dummy_galectin_3.pdb,Aspirin,-10.29,0.05,0.91,Docking Site: Dimerization interface | Inhibition Mechanism: Hydrogen bonding network (Strength: 87.1%),Galectin-3 fibrotic pathway,-18.89
+AGENT-001,dummy_galectin_3.pdb,Testosterone,-7.69,0.04,0.88,Docking Site: N-terminal domain | Inhibition Mechanism: Covalent bonding (Strength: 89.8%),Galectin-3 fibrotic pathway,-16.09
+AGENT-001,dummy_galectin_3.pdb,Caffeine,-7.85,0.1,0.85,Docking Site: Carbohydrate Recognition Domain (CRD) | Inhibition Mechanism: Hydrogen bonding network (Strength: 79.0%),Galectin-3 fibrotic pathway,-15.35

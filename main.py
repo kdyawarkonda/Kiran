@@ -1,5 +1,6 @@
 import os
 import argparse
+import pandas as pd
 from drug_discovery_agents import AgentManager
 
 def main():
@@ -10,42 +11,58 @@ def main():
                         help="Path to the chemical dataset CSV file")
     args = parser.parse_args()
 
-    print("Initializing Multi-Agent Drug Discovery System...")
+    print("==================================================")
+    print("  MULTI-AGENT DRUG DISCOVERY SYSTEM INITIALIZED   ")
+    print("==================================================\n")
 
-    # We pass llm=None here to use the fallback simulated tool execution
-    # to avoid needing an OpenAI API key for this demonstration.
-    # To use a real LLM, instantiate it and pass it to AgentManager(llm=my_llm)
     manager = AgentManager(llm=None)
 
-    # 1. User uploads a protein structure (Galectin-3 variant)
     pdb_path = args.pdb
     if not os.path.exists(pdb_path):
         print(f"Error: PDB file not found at {pdb_path}")
         return
+    print(f"[System] Target Protein Structure: {pdb_path}")
 
-    print(f"\n[System] Uploading protein structure: {pdb_path}")
+    # In a real scenario, you could loop through multiple PDB files and add multiple agents here.
+    # For now, we add one agent for the provided PDB file.
+    manager.add_agent(protein_pdb=pdb_path)
 
-    # 2. AgentManager creates a new agent for this protein
-    agent_serial = manager.add_agent(protein_pdb=pdb_path)
-
-    # 3. User provides a list of chemicals in a CSV
     csv_path = args.csv
     if not os.path.exists(csv_path):
         print(f"Error: CSV file not found at {csv_path}")
         return
+    print(f"[System] Chemical Dataset: {csv_path}")
 
-    print(f"\n[System] Loading chemical dataset: {csv_path}")
+    results = manager.run_chemical_screening(csv_path=csv_path, max_workers=4)
 
-    # 4. Run the screening process in parallel
-    print(f"\n[System] Starting analysis...")
-    results = manager.run_chemical_screening(csv_path=csv_path, max_workers=2)
+    if not results:
+        print("No results generated.")
+        return
 
-    # 5. Output the results
-    print("\n--- Final Analysis Results ---")
-    for res in results:
-        print(f"\nAgent: {res['agent_serial']} | Chemical: {res['chemical_name']} ({res['smiles']})")
-        print(f"Result:\n{res['analysis_result']}")
-        print("-" * 40)
+    # Convert results to a pandas DataFrame for tabular formatting
+    df = pd.DataFrame(results)
+
+    # Sort the dataframe by 'Drug Score' (lowest score is best)
+    df_sorted = df.sort_values(by="Drug Score", ascending=True).reset_index(drop=True)
+
+    # Print the tabular results
+    print("\n\n==================================================")
+    print("             FINAL SCREENING RESULTS              ")
+    print("          (Sorted from Best to Worst)             ")
+    print("==================================================\n")
+
+    # Configure pandas to show all columns and wide rows
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 1000)
+    pd.set_option('display.max_colwidth', 80)
+
+    print(df_sorted.to_string(index=True))
+
+    print("\n\nNote: 'Drug Score' is calculated as: Affinity + (Toxicity * 10) - (Stability * 10). Lower is better.")
+    print("Results saved to output_results.csv")
+
+    # Save to CSV for the user
+    df_sorted.to_csv("output_results.csv", index=False)
 
 if __name__ == "__main__":
     main()

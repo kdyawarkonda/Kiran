@@ -1,19 +1,18 @@
 import concurrent.futures
 import pandas as pd
+import json
+import re
 from typing import List, Dict, Any
 from langchain.agents import initialize_agent, AgentType
 from langchain_community.chat_models import ChatOpenAI
-# Alternatively, use a local open-source model to reduce token cost
-# from langchain_community.llms import LlamaCpp
 
-from .tools import analyze_stability, analyze_efficacy, analyze_side_effects, find_biological_pathways
+from .tools import analyze_stability, analyze_efficacy, analyze_side_effects, find_biological_pathways, analyze_docking_and_inhibition
 
 class ProteinAgent:
     def __init__(self, serial_number: str, protein_pdb: str, llm=None):
         self.serial_number = serial_number
         self.protein_pdb = protein_pdb
 
-        # We use a placeholder for the LLM if none is provided.
         if llm is None:
             self.llm = None
         else:
@@ -23,10 +22,10 @@ class ProteinAgent:
             analyze_stability,
             analyze_efficacy,
             analyze_side_effects,
-            find_biological_pathways
+            find_biological_pathways,
+            analyze_docking_and_inhibition
         ]
 
-        # Initialize the LangChain Agent using the older, more compatible method
         if self.llm:
             self.agent = initialize_agent(
                 tools=self.tools,
@@ -38,42 +37,61 @@ class ProteinAgent:
         else:
             self.agent = None
 
+    def _extract_metric(self, text: str, pattern: str) -> float:
+        match = re.search(pattern, text)
+        if match:
+            return float(match.group(1))
+        return 0.0
+
     def analyze_chemical(self, smiles: str, name: str) -> Dict[str, Any]:
         """
-        Runs the agent on a single chemical to find if it is a suitable inhibitor.
+        Runs the agent on a single chemical.
+        Returns a dictionary containing structured metrics for tabular display.
         """
-        prompt = f"""
-        You are Agent {self.serial_number}, an expert in pharmaceutical chemistry and quantum-enhanced models.
-        Your task is to analyze the chemical '{name}' (SMILES: {smiles}) as an inhibitor for the protein variant found in {self.protein_pdb}.
+        # When bypassing LLM for simulated execution:
+        if not self.agent:
+            efficacy_raw = analyze_efficacy.invoke(f"{smiles},{self.protein_pdb}")
+            pathway_raw = find_biological_pathways.invoke(smiles)
+            side_effect_raw = analyze_side_effects.invoke(smiles)
+            stability_raw = analyze_stability.invoke(smiles)
+            docking_raw = analyze_docking_and_inhibition.invoke(f"{smiles},{self.protein_pdb}")
+        else:
+            # If an LLM is used, we prompt it to use tools and we will still manually invoke the tools
+            # to guarantee structured JSON output for the table, OR we can parse the LLM output.
+            # For robustness in tabular rendering, forced tool invocation is more reliable.
+            efficacy_raw = analyze_efficacy.invoke(f"{smiles},{self.protein_pdb}")
+            pathway_raw = find_biological_pathways.invoke(smiles)
+            side_effect_raw = analyze_side_effects.invoke(smiles)
+            stability_raw = analyze_stability.invoke(smiles)
+            docking_raw = analyze_docking_and_inhibition.invoke(f"{smiles},{self.protein_pdb}")
 
-        Use your tools to find:
-        1. The binding efficacy of the chemical to the protein. When using the efficacy tool, format the input as: {smiles},{self.protein_pdb}
-        2. The biological pathways it affects.
-        3. The side effect profile.
-        4. The environmental stability of the chemical.
+            # The LLM can still generate a summary
+            prompt = f"""You are Agent {self.serial_number}. Analyze '{name}' (SMILES: {smiles}) for protein {self.protein_pdb}. Keep summary to 2 sentences."""
+            try:
+                summary = self.agent.run(prompt)
+            except:
+                summary = "Analysis complete."
 
-        Summarize your findings. Keep it concise to save tokens.
-        """
+        # Extract numerical values for sorting and scoring
+        affinity = self._extract_metric(efficacy_raw, r"Affinity: (-?\d+\.\d+)")
+        toxicity = self._extract_metric(side_effect_raw, r"Risk: (\d+\.\d+)")
+        stability = self._extract_metric(stability_raw, r"Score: (\d+\.\d+)")
 
-        try:
-            if self.agent:
-                result = self.agent.run(prompt)
-            else:
-                # Fallback if LLM is not configured
-                result = "LLM not configured. Manual tool execution simulated."
-                result += f"\n- {analyze_efficacy.invoke(f'{smiles},{self.protein_pdb}')}"
-                result += f"\n- {find_biological_pathways.invoke(smiles)}"
-                result += f"\n- {analyze_side_effects.invoke(smiles)}"
-                result += f"\n- {analyze_stability.invoke(smiles)}"
-
-        except Exception as e:
-            result = f"Error during analysis: {str(e)}"
+        # Calculate a simple "Drug Score" (lower affinity is better, lower toxicity is better, higher stability is better)
+        # Score = Affinity (more negative is better) + (Toxicity * 10) - (Stability * 10)
+        # Therefore, a LOWER score is a BETTER drug.
+        drug_score = affinity + (toxicity * 10) - (stability * 10)
 
         return {
-            "agent_serial": self.serial_number,
-            "chemical_name": name,
-            "smiles": smiles,
-            "analysis_result": result
+            "Agent": self.serial_number,
+            "Protein": self.protein_pdb.split('/')[-1],
+            "Chemical": name,
+            "Affinity (kcal/mol)": affinity,
+            "Toxicity Risk": toxicity,
+            "Stability Score": stability,
+            "Docking & Mechanism": docking_raw,
+            "Pathway": pathway_raw,
+            "Drug Score": round(drug_score, 2)
         }
 
 class AgentManager:
@@ -82,9 +100,6 @@ class AgentManager:
         self.llm = llm
 
     def add_agent(self, protein_pdb: str) -> str:
-        """
-        Creates a new agent for a specific protein variant and assigns a serial number.
-        """
         serial_number = f"AGENT-{len(self.agents) + 1:03d}"
         new_agent = ProteinAgent(serial_number, protein_pdb, self.llm)
         self.agents.append(new_agent)
@@ -92,10 +107,6 @@ class AgentManager:
         return serial_number
 
     def run_chemical_screening(self, csv_path: str, max_workers: int = 4) -> List[Dict[str, Any]]:
-        """
-        Runs the chemical screening process across all agents and all chemicals in the CSV.
-        Executes in parallel using ThreadPoolExecutor.
-        """
         try:
             df = pd.read_csv(csv_path)
             chemicals = df.to_dict('records')
@@ -104,15 +115,13 @@ class AgentManager:
             return []
 
         tasks = []
-        # Create a task for every combination of Agent and Chemical
         for agent in self.agents:
             for chem in chemicals:
                 tasks.append((agent, chem['SMILES'], chem['Name']))
 
-        print(f"Starting parallel screening with {len(tasks)} tasks...")
+        print(f"\nStarting parallel screening with {len(tasks)} tasks...")
         results = []
 
-        # Run tasks in parallel
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_task = {
                 executor.submit(agent.analyze_chemical, smiles, name): (agent.serial_number, name)
@@ -124,7 +133,6 @@ class AgentManager:
                 try:
                     res = future.result()
                     results.append(res)
-                    print(f"Completed analysis for {name} by {agent_serial}")
                 except Exception as exc:
                     print(f"Task for {name} by {agent_serial} generated an exception: {exc}")
 
