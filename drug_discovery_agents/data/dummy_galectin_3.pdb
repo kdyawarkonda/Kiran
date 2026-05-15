@@ -1,0 +1,4 @@
+HEADER    DUMMY GALECTIN-3 VARIANT PDB
+ATOM      1  N   ALA A   1      11.104  13.730  32.004  1.00 20.00           N
+ATOM      2  CA  ALA A   1      10.380  13.259  30.826  1.00 20.00           C
+ATOM      3  C   ALA A   1       8.918  13.682  30.932  1.00 20.00           C

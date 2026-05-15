@@ -93,3 +93,4 @@ Temporary Items
 
 # Custom ignores
 /rust/
+__pycache__/
