@@ -5,10 +5,14 @@ set -e
 
 echo "Starting model and dependency installation for Cardiac Fibrosis Drug Discovery Pipeline..."
 
-# 1. Install system dependencies (assuming Debian/Ubuntu based for local execution)
+# 1. Install system dependencies (assuming Debian/Ubuntu/MacOS)
 echo "Installing system dependencies..."
-sudo apt-get update -y || echo "Skipping apt update..."
-sudo apt-get install -y git wget curl build-essential || echo "Skipping apt install..."
+if command -v apt-get &> /dev/null; then
+    sudo apt-get update -y || echo "Skipping apt update..."
+    sudo apt-get install -y git wget curl build-essential || echo "Skipping apt install..."
+elif command -v brew &> /dev/null; then
+    brew install git wget curl
+fi
 
 # 2. Install Python packages
 echo "Installing Python dependencies from requirements.txt..."
@@ -28,8 +32,7 @@ else
     echo "DiffDock already exists."
 fi
 
-# 5. Setting up ESM2 (HuggingFace Transformers will handle weights automatically,
-# but ensuring the cache directory is established)
+# 5. Setting up ESM2 (HuggingFace Transformers will handle weights automatically)
 export HF_HOME="./models/huggingface_cache"
 echo "HuggingFace cache set to $HF_HOME for ESM2."
 
